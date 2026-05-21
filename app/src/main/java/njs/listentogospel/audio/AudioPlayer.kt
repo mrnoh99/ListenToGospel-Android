@@ -24,7 +24,8 @@ data class AudioState(
     val isPlaying: Boolean = false,
     val positionMs: Int = 0,
     val durationMs: Int = 0,
-    val chapterJustCompleted: Boolean = false
+    val chapterJustCompleted: Boolean = false,
+    val playbackError: String? = null
 )
 
 class AudioPlayer(private val context: Context) {
@@ -64,13 +65,19 @@ class AudioPlayer(private val context: Context) {
                     isPlaying = true,
                     durationMs = mediaPlayer!!.duration,
                     positionMs = startMs,
-                    chapterJustCompleted = false
+                    chapterJustCompleted = false,
+                    playbackError = null
                 )
             }
             startPositionPolling()
             startForegroundService(chapter)
         } catch (e: Exception) {
-            _state.update { it.copy(isPlaying = false) }
+            _state.update {
+                it.copy(
+                    isPlaying = false,
+                    playbackError = "오디오 파일을 찾을 수 없습니다. copy_audio_assets.sh 실행 후 다시 시도하세요."
+                )
+            }
         }
     }
 

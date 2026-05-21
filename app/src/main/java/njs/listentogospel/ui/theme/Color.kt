@@ -2,11 +2,14 @@ package njs.listentogospel.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val NavyDark = Color(0xFF0A1628)
-val NavyMid = Color(0xFF1A2D4A)
-val NavyLight = Color(0xFF243B5E)
-val GoldPrimary = Color(0xFFD4A843)
-val GoldLight = Color(0xFFE8C46A)
-val CreamWhite = Color(0xFFF5EDD8)
-val SurfaceDark = Color(0xFF121C2B)
-val OnSurfaceDark = Color(0xFFE8DFC8)
+val AccentBlue = Color(0xFF007AFF)
+val SystemBackground = Color(0xFFFFFFFF)
+val SecondarySystemBackground = Color(0xFFF2F2F7)
+val LabelPrimary = Color(0xFF000000)
+val LabelSecondary = Color(0x993C3C43)
+val PlayingRowBackground = AccentBlue.copy(alpha = 0.34f)
+
+val SystemBackgroundDark = Color(0xFF000000)
+val SecondarySystemBackgroundDark = Color(0xFF1C1C1E)
+val LabelPrimaryDark = Color(0xFFFFFFFF)
+val LabelSecondaryDark = Color(0x99EBEBF5)
