@@ -1,6 +1,6 @@
 # GitHub Pages로 마케팅·지원 URL 게시하기
 
-이 폴더(`docs/`)는 App Store Connect의 **Marketing URL**과 **Support URL**에 넣을 수 있는 정적 웹 페이지입니다.
+이 폴더(`docs/`)는 Google Play Console의 **스토어 등록정보 URL**과 **개인정보 처리방침 URL**에 넣을 수 있는 정적 웹 페이지입니다.
 
 ## 게시 후 사용할 URL 예시
 
@@ -44,9 +44,9 @@
 
 ## 수정할 항목
 
-- `index.html`: `#app-store-link` 의 `href` 를 승인 후 실제 App Store 앱 URL로 교체
+- `index.html`: `#play-store-link` 의 `href` 를 Play Store 등록 후 실제 앱 URL로 교체
 - `support.html`: 지원 이메일은 `jsnoh2010@gmail.com` 로 설정되어 있습니다.
-- App Store **앱 개인정보** 항목에 `privacy.html` 전체 URL을 넣을 수 있습니다.
+- Google Play **개인정보 처리방침** 항목에 `privacy.html` 전체 URL을 넣을 수 있습니다.
 - 앱 표기명은 문서 전반에서 **복음서듣기** 로 통일되어 있습니다.
 
 ## 참고
