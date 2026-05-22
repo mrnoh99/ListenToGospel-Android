@@ -105,8 +105,8 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
     fun selectGospelInGrid(gospel: Gospel) {
         _uiState.update { state ->
             val chapter = when {
-                state.isPlaying && state.currentChapter?.gospel == gospel -> state.currentChapter!!
-                state.resumeBookmark?.chapter?.gospel == gospel -> state.resumeBookmark!!.chapter
+                state.isPlaying && state.currentChapter?.gospel == gospel -> state.currentChapter
+                state.resumeBookmark?.chapter?.gospel == gospel -> state.resumeBookmark.chapter
                 else -> BibleChapter(gospel, 1)
             }
             state.copy(selectedGospel = gospel, selectedChapter = chapter)
