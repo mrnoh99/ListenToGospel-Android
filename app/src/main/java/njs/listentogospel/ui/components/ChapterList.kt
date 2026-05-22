@@ -25,13 +25,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import njs.listentogospel.model.BibleChapter
 import njs.listentogospel.model.Gospel
+import njs.listentogospel.ui.theme.AppControlLayout
 import njs.listentogospel.ui.theme.PlayingRowBackground
+import njs.listentogospel.viewmodel.ChapterScrollAlignment
+
+private fun chapterLazyIndex(chapterNumber: Int): Int = chapterNumber + 1
 
 @Composable
 fun ChapterList(
@@ -44,26 +49,49 @@ fun ChapterList(
     durationMs: Int,
     topContentPadding: Int,
     bottomContentPadding: Int,
+    scrollRequestId: Long,
+    scrollTargetChapter: BibleChapter?,
+    scrollAlignment: ChapterScrollAlignment,
     onChapterClick: (BibleChapter) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
+    val density = LocalDensity.current
+    val estimatedRowHeightPx = with(density) { AppControlLayout.chapterRowMinHeight.roundToPx() }
 
-    LaunchedEffect(gospel, currentChapter, selectedChapter) {
-        val target = when {
-            isPlaying && currentChapter?.gospel == gospel -> currentChapter
-            resumeChapter?.gospel == gospel -> resumeChapter
-            selectedChapter.gospel == gospel -> selectedChapter
-            else -> gospel.chapters.firstOrNull()
-        } ?: return@LaunchedEffect
-        listState.animateScrollToItem((target.number - 1).coerceAtLeast(0))
+    LaunchedEffect(scrollRequestId, scrollTargetChapter, scrollAlignment, gospel) {
+        val target = scrollTargetChapter ?: return@LaunchedEffect
+        if (target.gospel != gospel) return@LaunchedEffect
+
+        val index = chapterLazyIndex(target.number)
+        when (scrollAlignment) {
+            ChapterScrollAlignment.TOP -> {
+                listState.animateScrollToItem(index = index, scrollOffset = 0)
+            }
+            ChapterScrollAlignment.CENTER -> {
+                val viewportHeight = listState.layoutInfo.viewportSize.height
+                val itemHeight = listState.layoutInfo.visibleItemsInfo
+                    .firstOrNull { it.index == index }
+                    ?.size ?: estimatedRowHeightPx
+                val centerOffset = ((viewportHeight - itemHeight) / 2).coerceAtLeast(0)
+                listState.animateScrollToItem(index = index, scrollOffset = -centerOffset)
+            }
+        }
     }
 
     LazyColumn(
         state = listState,
         modifier = modifier.clip(RoundedCornerShape(16.dp))
     ) {
-        item { Spacer(modifier = Modifier.height(topContentPadding.dp)) }
+        item(key = "top-spacer") { Spacer(modifier = Modifier.height(topContentPadding.dp)) }
+
+        item(key = "top-edge-spacer-row") {
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(AppControlLayout.chapterRowMinHeight)
+            )
+        }
 
         items(gospel.chapters, key = { it.number }) { chapter ->
             val isCurrentlyPlaying = isPlaying && currentChapter == chapter
@@ -83,7 +111,7 @@ fun ChapterList(
             )
         }
 
-        item { Spacer(modifier = Modifier.height(bottomContentPadding.dp)) }
+        item(key = "bottom-spacer") { Spacer(modifier = Modifier.height(bottomContentPadding.dp)) }
     }
 }
 
@@ -104,6 +132,7 @@ private fun ChapterRow(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .height(AppControlLayout.chapterRowMinHeight)
             .background(if (isActive) PlayingRowBackground else MaterialTheme.colorScheme.background)
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp)

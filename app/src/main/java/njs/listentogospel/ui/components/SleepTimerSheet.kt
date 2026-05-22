@@ -1,24 +1,32 @@
 package njs.listentogospel.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import njs.listentogospel.viewmodel.SleepTimerOption
 
 private val timedOptions = listOf(
     SleepTimerOption.THIRTY,
     SleepTimerOption.SIXTY,
     SleepTimerOption.NINETY,
-    SleepTimerOption.ONE_TWENTY
+    SleepTimerOption.ONE_TWENTY,
+    SleepTimerOption.CONTINUOUS
 )
+
+private val sleepTimerTitleFontSize = 18.sp
 
 @Composable
 fun SleepTimerSheet(
@@ -26,65 +34,56 @@ fun SleepTimerSheet(
     onSelect: (SleepTimerOption) -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "수면 타이머",
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
-            Column {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier.widthIn(min = 220.dp, max = 260.dp),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
                 Text(
-                    text = "타이머 시간을 정합니다",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = "수면 타이머",
+                    fontSize = sleepTimerTitleFontSize,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
+
                 timedOptions.forEach { option ->
-                    TextButton(
-                        onClick = { onSelect(option) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = optionTitle(option, selectedOption),
-                            color = if (selectedOption == option) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.onSurface
-                            },
-                            fontWeight = if (selectedOption == option) FontWeight.Bold else FontWeight.Normal,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
-                TextButton(
-                    onClick = { onSelect(SleepTimerOption.CONTINUOUS) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = optionTitle(SleepTimerOption.CONTINUOUS, selectedOption),
-                        color = if (selectedOption == SleepTimerOption.CONTINUOUS) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        },
-                        fontWeight = if (selectedOption == SleepTimerOption.CONTINUOUS) {
-                            FontWeight.Bold
-                        } else {
-                            FontWeight.Normal
-                        },
-                        modifier = Modifier.fillMaxWidth()
+                    SleepTimerOptionRow(
+                        label = optionTitle(option, selectedOption),
+                        isSelected = selectedOption == option,
+                        fontSize = sleepTimerTitleFontSize,
+                        onClick = { onSelect(option) }
                     )
                 }
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("취소")
-            }
         }
+    }
+}
+
+@Composable
+private fun SleepTimerOptionRow(
+    label: String,
+    isSelected: Boolean,
+    fontSize: TextUnit,
+    onClick: () -> Unit
+) {
+    Text(
+        text = label,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp),
+        color = if (isSelected) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.onSurface
+        },
+        fontSize = fontSize,
+        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
     )
 }
 

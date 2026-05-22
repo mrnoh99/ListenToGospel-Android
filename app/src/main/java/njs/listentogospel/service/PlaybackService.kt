@@ -22,7 +22,12 @@ class PlaybackService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val title = intent?.getStringExtra(EXTRA_CHAPTER_TITLE) ?: "재생 중"
-        startForeground(NOTIFICATION_ID, buildNotification(title))
+        try {
+            startForeground(NOTIFICATION_ID, buildNotification(title))
+        } catch (_: Exception) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
         return START_NOT_STICKY
     }
 
@@ -52,7 +57,8 @@ class PlaybackService : Service() {
             .setSmallIcon(R.drawable.ic_notification)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
-            .setSilent(true)
+            .setOnlyAlertOnce(true)
+            .setCategory(NotificationCompat.CATEGORY_TRANSPORT)
             .build()
     }
 
