@@ -82,7 +82,7 @@ private fun GospelPickerCell(
         Text(
             text = gospel.shortName,
             color = textColor,
-            fontSize = 20.sp,
+            fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,

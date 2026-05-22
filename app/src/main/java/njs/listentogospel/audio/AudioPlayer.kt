@@ -6,8 +6,10 @@ import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
+import android.os.Build
 import android.os.PowerManager
 import android.util.Log
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import njs.listentogospel.model.BibleChapter
 import njs.listentogospel.service.PlaybackService
 import java.io.File
@@ -41,11 +44,18 @@ class AudioPlayer(private val context: Context) {
     private var focusGeneration = 0
     private var pendingChapter: BibleChapter? = null
     private var pendingStartMs = 0
+    private var playbackJob: Job? = null
+
+    @Suppress("DEPRECATION")
+    private val legacyFocusListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
+        handleAudioFocusChange(focusChange)
+    }
 
     private val _state = MutableStateFlow(AudioState())
     val state: StateFlow<AudioState> = _state.asStateFlow()
 
     fun play(chapter: BibleChapter, startMs: Int = 0) {
+        playbackJob?.cancel()
         abandonAudioFocus()
         releasePlayer()
 
@@ -75,6 +85,7 @@ class AudioPlayer(private val context: Context) {
     }
 
     fun stop() {
+        playbackJob?.cancel()
         pendingChapter = null
         val posMs = mediaPlayer?.currentPosition ?: _state.value.positionMs
         releasePlayer()
@@ -114,46 +125,67 @@ class AudioPlayer(private val context: Context) {
         val startMs = pendingStartMs
         pendingChapter = null
 
-        try {
-            val audioFile = resolveChapterAudioFile(chapter)
-            startForegroundService(chapter)
-            mediaPlayer = MediaPlayer().apply {
-                setWakeMode(context.applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
-                setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .build()
-                )
-                setDataSource(audioFile.absolutePath)
-                setVolume(1f, 1f)
-                setOnCompletionListener { handleCompletion() }
-                setOnErrorListener { _, what, extra ->
-                    Log.e(TAG, "MediaPlayer error what=$what extra=$extra")
-                    failPlayback("오디오 재생 중 오류가 발생했습니다.")
-                    true
+        playbackJob = scope.launch {
+            try {
+                val audioFile = withContext(Dispatchers.IO) {
+                    resolveChapterAudioFile(chapter)
                 }
-                prepare()
-                if (startMs > 0) seekTo(startMs)
-                start()
+                startForegroundService(chapter)
+
+                val player = MediaPlayer().apply {
+                    setWakeMode(context.applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
+                    setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .build()
+                    )
+                    setDataSource(audioFile.absolutePath)
+                    setVolume(1f, 1f)
+                    setOnCompletionListener { handleCompletion() }
+                    setOnErrorListener { _, what, extra ->
+                        Log.e(TAG, "MediaPlayer error what=$what extra=$extra")
+                        scope.launch {
+                            failPlayback("오디오 재생 중 오류가 발생했습니다.")
+                        }
+                        true
+                    }
+                }
+
+                withContext(Dispatchers.IO) {
+                    player.prepare()
+                }
+
+                if (startMs > 0) {
+                    player.seekTo(startMs)
+                }
+                player.start()
+                mediaPlayer = player
+
+                _state.update {
+                    it.copy(
+                        currentChapter = chapter,
+                        isPlaying = true,
+                        durationMs = player.duration,
+                        positionMs = startMs,
+                        chapterJustCompleted = false,
+                        playbackError = null
+                    )
+                }
+                startPositionPolling()
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to play ${chapter.assetPath}", e)
+                stopForegroundService()
+                failPlayback(playbackErrorMessage(e))
             }
-            _state.update {
-                it.copy(
-                    currentChapter = chapter,
-                    isPlaying = true,
-                    durationMs = mediaPlayer!!.duration,
-                    positionMs = startMs,
-                    chapterJustCompleted = false,
-                    playbackError = null
-                )
-            }
-            startPositionPolling()
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to play ${chapter.assetPath}", e)
-            stopForegroundService()
-            failPlayback(
-                "오디오 파일을 찾을 수 없습니다. 프로젝트 루트에서 ./copy_audio_assets.sh 실행 후 앱을 다시 빌드하세요."
-            )
+        }
+    }
+
+    private fun playbackErrorMessage(e: Exception): String {
+        return if (e is java.io.FileNotFoundException || e.message?.contains("ENOENT") == true) {
+            "오디오 파일을 찾을 수 없습니다. 앱을 다시 설치해 주세요."
+        } else {
+            "오디오 재생을 시작할 수 없습니다. 잠시 후 다시 시도해 주세요."
         }
     }
 
@@ -213,7 +245,7 @@ class AudioPlayer(private val context: Context) {
             putExtra(PlaybackService.EXTRA_CHAPTER_TITLE, chapter.title)
         }
         try {
-            context.startForegroundService(intent)
+            ContextCompat.startForegroundService(context, intent)
         } catch (e: Exception) {
             Log.w(TAG, "Foreground service start failed", e)
         }
@@ -224,22 +256,31 @@ class AudioPlayer(private val context: Context) {
     }
 
     private fun requestAudioFocus(): Int {
-        val generation = ++focusGeneration
-        val req = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).apply {
-            setAcceptsDelayedFocusGain(true)
-            setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .build()
-            )
-            setOnAudioFocusChangeListener { focusChange ->
-                if (generation != focusGeneration) return@setOnAudioFocusChangeListener
-                handleAudioFocusChange(focusChange)
-            }
-        }.build()
-        audioFocusRequest = req
-        return audioManager.requestAudioFocus(req)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val generation = ++focusGeneration
+            val req = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).apply {
+                setAcceptsDelayedFocusGain(true)
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .build()
+                )
+                setOnAudioFocusChangeListener { focusChange ->
+                    if (generation != focusGeneration) return@setOnAudioFocusChangeListener
+                    handleAudioFocusChange(focusChange)
+                }
+            }.build()
+            audioFocusRequest = req
+            return audioManager.requestAudioFocus(req)
+        }
+
+        @Suppress("DEPRECATION")
+        return audioManager.requestAudioFocus(
+            legacyFocusListener,
+            AudioManager.STREAM_MUSIC,
+            AudioManager.AUDIOFOCUS_GAIN
+        )
     }
 
     private fun handleAudioFocusChange(focusChange: Int) {
@@ -263,8 +304,13 @@ class AudioPlayer(private val context: Context) {
 
     private fun abandonAudioFocus() {
         focusGeneration += 1
-        audioFocusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
-        audioFocusRequest = null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            audioFocusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
+            audioFocusRequest = null
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager.abandonAudioFocus(legacyFocusListener)
+        }
     }
 
     companion object {

@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import njs.listentogospel.MainActivity
@@ -17,14 +18,15 @@ class PlaybackService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        createNotificationChannel()
+        createNotificationChannelIfNeeded()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val title = intent?.getStringExtra(EXTRA_CHAPTER_TITLE) ?: "재생 중"
         try {
+            @Suppress("DEPRECATION")
             startForeground(NOTIFICATION_ID, buildNotification(title))
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             stopSelf()
             return START_NOT_STICKY
         }
@@ -32,11 +34,17 @@ class PlaybackService : Service() {
     }
 
     override fun onDestroy() {
-        stopForeground(STOP_FOREGROUND_REMOVE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        } else {
+            @Suppress("DEPRECATION")
+            stopForeground(true)
+        }
         super.onDestroy()
     }
 
-    private fun createNotificationChannel() {
+    private fun createNotificationChannelIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val channel = NotificationChannel(
             CHANNEL_ID,
             "오디오 재생",
@@ -46,12 +54,24 @@ class PlaybackService : Service() {
     }
 
     private fun buildNotification(chapterTitle: String): Notification {
+        val pendingFlags = PendingIntent.FLAG_UPDATE_CURRENT or
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PendingIntent.FLAG_IMMUTABLE
+            } else {
+                0
+            }
         val pendingIntent = PendingIntent.getActivity(
             this, 0,
             Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            pendingFlags
         )
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationCompat.Builder(this, CHANNEL_ID)
+        } else {
+            @Suppress("DEPRECATION")
+            NotificationCompat.Builder(this)
+        }
+        return builder
             .setContentTitle("복음서듣기")
             .setContentText(chapterTitle)
             .setSmallIcon(R.drawable.ic_notification)
