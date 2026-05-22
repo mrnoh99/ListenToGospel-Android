@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="navy_dark">#FFFFFFFF</color>
+    <color name="navy_dark">#FF000000</color>
     <color name="gold_primary">#FF007AFF</color>
-    <color name="cream_white">#FF000000</color>
+    <color name="cream_white">#FFFFFFFF</color>
     <color name="ic_launcher_background">#FF007AFF</color>
 </resources>

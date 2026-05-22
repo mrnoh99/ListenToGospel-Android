@@ -38,7 +38,7 @@ fun SleepTimerSheet(
         Surface(
             modifier = Modifier.widthIn(min = 220.dp, max = 260.dp),
             shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
+            color = MaterialTheme.colorScheme.surfaceVariant,
             tonalElevation = 6.dp
         ) {
             Column(
