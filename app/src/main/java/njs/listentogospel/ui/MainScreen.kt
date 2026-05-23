@@ -1,17 +1,15 @@
 package njs.listentogospel.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
@@ -28,23 +27,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import njs.listentogospel.ui.hapticClick
 import njs.listentogospel.ui.components.ChapterList
 import njs.listentogospel.ui.components.GospelHeaderGlassBar
 import njs.listentogospel.ui.components.GospelPicker
 import njs.listentogospel.ui.components.PlaybackGlassMenu
 import njs.listentogospel.ui.components.SleepTimerSheet
+import njs.listentogospel.model.BibleChapter
 import njs.listentogospel.ui.theme.AppControlLayout
+import njs.listentogospel.util.AppHaptic
 import njs.listentogospel.viewmodel.BiblePlayerViewModel
 import njs.listentogospel.viewmodel.SleepTimerOption
+import njs.listentogospel.viewmodel.UiState
 
 @Composable
 fun MainScreen(viewModel: BiblePlayerViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showSleepTimerSheet by remember { mutableStateOf(false) }
+    val haptic = rememberHaptic()
     val density = LocalDensity.current
 
     val bottomContentPadding = with(density) {
-        AppControlLayout.chapterListGlassPeek.roundToPx()
+        AppControlLayout.controlsOverlayBottomReserve.roundToPx()
     }
 
     Column(
@@ -55,42 +59,56 @@ fun MainScreen(viewModel: BiblePlayerViewModel = viewModel()) {
             .navigationBarsPadding()
             .padding(horizontal = 16.dp)
     ) {
-        Column(
+        Text(
+            text = "복음서듣기",
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = AppControlLayout.topContentInset)
-        ) {
+                .padding(top = AppControlLayout.topContentInset),
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        GospelPicker(
+            selectedGospel = uiState.selectedGospel,
+            onSelect = viewModel::selectGospelInGrid,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = AppControlLayout.headerSectionSpacing)
+        )
+
+        GospelHeaderGlassBar(
+            gospelName = uiState.selectedGospel.koreanName,
+            sleepTimerLabel = sleepTimerLabel(
+                option = uiState.sleepTimerOption,
+                remainingSeconds = uiState.sleepTimerRemainingSeconds
+            ),
+            onSleepTimerTap = hapticClick(haptic, AppHaptic.Selection) {
+                showSleepTimerSheet = true
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = AppControlLayout.floatingBarHorizontalInset)
+                .padding(bottom = AppControlLayout.headerBottomPadding)
+        )
+
+        uiState.playbackMessage?.let { message ->
             Text(
-                text = "복음서듣기",
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            GospelPicker(
-                selectedGospel = uiState.selectedGospel,
-                onSelect = viewModel::selectGospelInGrid,
+                text = message,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = AppControlLayout.headerSectionSpacing)
+                    .padding(bottom = 4.dp),
+                color = Color(0xFFFF9500),
+                fontSize = 15.sp
             )
+        }
 
-            GospelHeaderGlassBar(
-                gospelName = uiState.selectedGospel.koreanName,
-                sleepTimerLabel = sleepTimerLabel(
-                    option = uiState.sleepTimerOption,
-                    remainingSeconds = uiState.sleepTimerRemainingSeconds
-                ),
-                onSleepTimerTap = { showSleepTimerSheet = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = AppControlLayout.floatingBarHorizontalInset,
-                        vertical = AppControlLayout.headerBottomPadding
-                    )
-            )
-
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .fillMaxHeight()
+        ) {
             ChapterList(
                 gospel = uiState.selectedGospel,
                 selectedChapter = uiState.selectedChapter,
@@ -104,56 +122,27 @@ fun MainScreen(viewModel: BiblePlayerViewModel = viewModel()) {
                 scrollRequestId = uiState.scrollRequestId,
                 scrollTargetChapter = uiState.scrollTargetChapter,
                 scrollAlignment = uiState.scrollAlignment,
+                chapterClickHaptic = { chapter -> chapterRowHaptic(uiState, chapter) },
                 onChapterClick = viewModel::toggleChapterPlayback,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(AppControlLayout.chapterListViewportHeight)
+                modifier = Modifier.fillMaxSize()
             )
 
             PlaybackGlassMenu(
                 chapterTitle = uiState.playbackTargetChapter.title,
                 isPlaying = uiState.isPlaying,
-                onPlayStop = viewModel::onPlaybackButtonTap,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = AppControlLayout.floatingBarHorizontalInset,
-                        vertical = AppControlLayout.floatingBarVerticalInset
-                    )
-            )
-
-            if (uiState.showResumeOffer && uiState.savedSession != null && !uiState.isPlaying) {
-                val session = uiState.savedSession!!
-                Button(
-                    onClick = { viewModel.resumeFromLaunchOffer() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
+                onPlayStop = hapticClick(
+                    haptic,
+                    if (uiState.isPlaying) AppHaptic.Stop else AppHaptic.Play
                 ) {
-                    Text(
-                        text = "이어서 ${session.gospel.shortName} ${session.chapterNumber}장 재생",
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-
-            uiState.playbackMessage?.let { message ->
-                Text(
-                    text = message,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
-                    color = Color(0xFFFF9500),
-                    fontSize = 15.sp
-                )
-            }
+                    viewModel.onPlaybackButtonTap()
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(horizontal = AppControlLayout.floatingBarHorizontalInset)
+                    .padding(vertical = AppControlLayout.floatingBarVerticalInset)
+            )
         }
-
-        Spacer(modifier = Modifier.weight(1f))
 
         Text(
             text = "by njs 2026",
@@ -175,6 +164,14 @@ fun MainScreen(viewModel: BiblePlayerViewModel = viewModel()) {
             },
             onDismiss = { showSleepTimerSheet = false }
         )
+    }
+}
+
+private fun chapterRowHaptic(uiState: UiState, chapter: BibleChapter): AppHaptic {
+    return when {
+        uiState.isPlaying && uiState.currentChapter == chapter -> AppHaptic.Stop
+        !uiState.isPlaying && uiState.resumeBookmark?.chapter == chapter -> AppHaptic.Play
+        else -> AppHaptic.Play
     }
 }
 

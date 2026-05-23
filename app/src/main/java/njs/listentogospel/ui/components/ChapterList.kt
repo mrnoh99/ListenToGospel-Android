@@ -1,7 +1,6 @@
 package njs.listentogospel.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,10 +31,14 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import njs.listentogospel.model.BibleChapter
 import njs.listentogospel.model.Gospel
+import njs.listentogospel.ui.hapticClickable
 import njs.listentogospel.ui.theme.AppControlLayout
 import njs.listentogospel.ui.theme.PlayingRowBackground
+import njs.listentogospel.util.AppHaptic
 import njs.listentogospel.viewmodel.ChapterScrollAlignment
 
 private fun chapterLazyIndex(chapterNumber: Int): Int = chapterNumber + 1
@@ -53,30 +58,17 @@ fun ChapterList(
     scrollTargetChapter: BibleChapter?,
     scrollAlignment: ChapterScrollAlignment,
     onChapterClick: (BibleChapter) -> Unit,
+    chapterClickHaptic: (BibleChapter) -> AppHaptic = { AppHaptic.Selection },
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
     val density = LocalDensity.current
     val estimatedRowHeightPx = with(density) { AppControlLayout.chapterRowMinHeight.roundToPx() }
 
-    LaunchedEffect(scrollRequestId, scrollTargetChapter, scrollAlignment, gospel) {
+    LaunchedEffect(scrollRequestId) {
         val target = scrollTargetChapter ?: return@LaunchedEffect
         if (target.gospel != gospel) return@LaunchedEffect
-
-        val index = chapterLazyIndex(target.number)
-        when (scrollAlignment) {
-            ChapterScrollAlignment.TOP -> {
-                listState.animateScrollToItem(index = index, scrollOffset = 0)
-            }
-            ChapterScrollAlignment.CENTER -> {
-                val viewportHeight = listState.layoutInfo.viewportSize.height
-                val itemHeight = listState.layoutInfo.visibleItemsInfo
-                    .firstOrNull { it.index == index }
-                    ?.size ?: estimatedRowHeightPx
-                val centerOffset = ((viewportHeight - itemHeight) / 2).coerceAtLeast(0)
-                listState.animateScrollToItem(index = index, scrollOffset = -centerOffset)
-            }
-        }
+        listState.scrollToChapter(target.number, scrollAlignment, estimatedRowHeightPx)
     }
 
     LazyColumn(
@@ -107,11 +99,47 @@ fun ChapterList(
                 isSelected = isSelected,
                 positionMs = if (isActive) positionMs else 0,
                 durationMs = if (isActive) durationMs else 0,
+                hapticKind = chapterClickHaptic(chapter),
                 onClick = { onChapterClick(chapter) }
             )
         }
 
         item(key = "bottom-spacer") { Spacer(modifier = Modifier.height(bottomContentPadding.dp)) }
+    }
+}
+
+private const val scrollCenterTolerancePx = 8
+
+private suspend fun LazyListState.scrollToChapter(
+    chapterNumber: Int,
+    alignment: ChapterScrollAlignment,
+    estimatedRowHeightPx: Int
+) {
+    val index = chapterLazyIndex(chapterNumber)
+    snapshotFlow { layoutInfo.viewportSize.height }
+        .filter { it > 0 }
+        .first()
+
+    when (alignment) {
+        ChapterScrollAlignment.TOP -> {
+            animateScrollToItem(index = index, scrollOffset = 0)
+        }
+        ChapterScrollAlignment.CENTER -> {
+            val layout = layoutInfo
+            val viewportHeight = layout.viewportSize.height
+            val visibleItem = layout.visibleItemsInfo.firstOrNull { it.index == index }
+            val itemHeight = visibleItem?.size ?: estimatedRowHeightPx
+            val desiredTop = ((viewportHeight - itemHeight) / 2).coerceAtLeast(0)
+
+            if (visibleItem != null) {
+                val adjustment = visibleItem.offset - desiredTop
+                if (kotlin.math.abs(adjustment) > scrollCenterTolerancePx) {
+                    animateScrollToItem(index = index, scrollOffset = -desiredTop)
+                }
+            } else {
+                animateScrollToItem(index = index, scrollOffset = -desiredTop)
+            }
+        }
     }
 }
 
@@ -124,6 +152,7 @@ private fun ChapterRow(
     isSelected: Boolean,
     positionMs: Int,
     durationMs: Int,
+    hapticKind: AppHaptic,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -134,7 +163,7 @@ private fun ChapterRow(
             .fillMaxWidth()
             .height(AppControlLayout.chapterRowMinHeight)
             .background(if (isActive) PlayingRowBackground else MaterialTheme.colorScheme.background)
-            .clickable(onClick = onClick)
+            .hapticClickable(kind = hapticKind, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Row(

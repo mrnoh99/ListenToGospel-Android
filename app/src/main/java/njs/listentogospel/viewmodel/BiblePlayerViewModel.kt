@@ -15,6 +15,8 @@ import njs.listentogospel.data.PlaybackPersistence
 import njs.listentogospel.data.SavedSession
 import njs.listentogospel.model.BibleChapter
 import njs.listentogospel.model.Gospel
+import njs.listentogospel.util.AppHaptic
+import njs.listentogospel.util.HapticFeedback
 
 enum class ChapterScrollAlignment {
     TOP,
@@ -54,7 +56,9 @@ data class UiState(
     val playbackTargetChapter: BibleChapter
         get() = currentChapter
             ?: resumeBookmark?.chapter
-            ?: savedSession?.let { BibleChapter(it.gospel, it.chapterNumber) }
+            ?: savedSession
+                ?.takeIf { showResumeOffer }
+                ?.let { BibleChapter(it.gospel, it.chapterNumber) }
             ?: selectedChapter
 }
 
@@ -63,25 +67,13 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
     private val audioPlayer = (application as ListenToGospelApp).audioPlayer
     private val persistence = PlaybackPersistence(application)
     private var sleepTimer: CountDownTimer? = null
+    private var launchResumeOfferDismissed = false
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     init {
-        val saved = persistence.load()
-        if (saved != null && saved.elapsedSeconds >= 3) {
-            _uiState.update {
-                it.copy(
-                    savedSession = saved,
-                    showResumeOffer = true,
-                    selectedGospel = saved.gospel,
-                    selectedChapter = BibleChapter(saved.gospel, saved.chapterNumber)
-                )
-            }
-            requestScroll(BibleChapter(saved.gospel, 1), ChapterScrollAlignment.TOP)
-        } else {
-            requestScroll(BibleChapter(Gospel.MATTHEW, 1), ChapterScrollAlignment.TOP)
-        }
+        restoreSessionOnLaunch()
 
         viewModelScope.launch {
             audioPlayer.state.collectLatest { audioState ->
@@ -112,6 +104,86 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
             state.copy(selectedGospel = gospel, selectedChapter = chapter)
         }
         requestScroll(BibleChapter(gospel, 1), ChapterScrollAlignment.TOP)
+        persistFocusedSession()
+    }
+
+    /** Saves gospel, chapter, and playback position for the next app launch. */
+    fun persistFocusedSession() {
+        val state = _uiState.value
+        val chapter = state.currentChapter
+            ?: state.resumeBookmark?.chapter
+            ?: state.selectedChapter.takeIf { it.gospel == state.selectedGospel }
+            ?: return
+
+        val elapsedSeconds = when {
+            state.resumeBookmark?.chapter == chapter ->
+                state.resumeBookmark.positionMs / 1000.0
+            state.currentChapter == chapter && state.isPlaying ->
+                audioPlayer.getCurrentPositionMs() / 1000.0
+            state.currentChapter == chapter ->
+                state.positionMs / 1000.0
+            else -> persistence.load()?.let { saved ->
+                if (saved.gospel == chapter.gospel && saved.chapterNumber == chapter.number) {
+                    saved.elapsedSeconds
+                } else {
+                    null
+                }
+            } ?: 0.0
+        }
+
+        persistence.save(chapter.gospel, chapter.number, elapsedSeconds)
+    }
+
+    private fun restoreSessionOnLaunch() {
+        val saved = persistence.load()
+        if (saved == null) {
+            requestScroll(BibleChapter(Gospel.MATTHEW, 1), ChapterScrollAlignment.TOP)
+            return
+        }
+
+        val chapterNumber = saved.chapterNumber.coerceIn(1, saved.gospel.chapterCount)
+        val chapter = BibleChapter(saved.gospel, chapterNumber)
+        val positionMs = (saved.elapsedSeconds * 1000).toInt().coerceAtLeast(0)
+        val canResume = saved.elapsedSeconds >= 3
+
+        _uiState.update {
+            it.copy(
+                selectedGospel = saved.gospel,
+                selectedChapter = chapter,
+                savedSession = if (canResume) saved else null,
+                showResumeOffer = canResume,
+                resumeBookmark = if (canResume) ResumeBookmark(chapter, positionMs) else null,
+                positionMs = if (canResume) positionMs else 0
+            )
+        }
+        requestScroll(chapter, ChapterScrollAlignment.CENTER)
+    }
+
+    private fun refreshLaunchResumeOffer() {
+        val state = _uiState.value
+        if (launchResumeOfferDismissed || state.isPlaying || state.resumeBookmark != null) {
+            _uiState.update { it.copy(showResumeOffer = false) }
+            return
+        }
+
+        val saved = persistence.load()
+        if (saved != null && saved.elapsedSeconds >= 3) {
+            _uiState.update {
+                it.copy(
+                    savedSession = saved,
+                    showResumeOffer = true,
+                    selectedGospel = saved.gospel,
+                    selectedChapter = BibleChapter(saved.gospel, saved.chapterNumber)
+                )
+            }
+        } else {
+            _uiState.update { it.copy(showResumeOffer = false, savedSession = null) }
+        }
+    }
+
+    private fun dismissLaunchResumeOffer() {
+        launchResumeOfferDismissed = true
+        _uiState.update { it.copy(showResumeOffer = false, savedSession = null) }
     }
 
     private fun requestScroll(chapter: BibleChapter, alignment: ChapterScrollAlignment) {
@@ -148,25 +220,23 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
 
     fun playChapter(chapter: BibleChapter, startMs: Int = 0) {
         if (_uiState.value.isPlaying) saveCurrentPosition()
-        audioPlayer.play(chapter, startMs)
-        val result = audioPlayer.state.value
-        if (!result.isPlaying) {
-            _uiState.update {
-                it.copy(playbackMessage = result.playbackError ?: it.playbackMessage)
-            }
-            return
-        }
+        dismissLaunchResumeOffer()
         _uiState.update {
             it.copy(
                 selectedGospel = chapter.gospel,
                 selectedChapter = chapter,
                 resumeBookmark = null,
-                showResumeOffer = false,
-                savedSession = null,
                 playbackMessage = null
             )
         }
         requestScroll(chapter, ChapterScrollAlignment.CENTER)
+        audioPlayer.play(chapter, startMs)
+        val result = audioPlayer.state.value
+        if (!result.isPlaying && result.playbackError != null) {
+            _uiState.update {
+                it.copy(playbackMessage = result.playbackError)
+            }
+        }
     }
 
     fun playFromSelection() {
@@ -189,6 +259,8 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
             }
             requestScroll(chapter, ChapterScrollAlignment.CENTER)
         }
+        refreshLaunchResumeOffer()
+        persistFocusedSession()
     }
 
     fun resumePlaybackAfterStop(): Boolean {
@@ -199,6 +271,7 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
 
     fun resumeFromLaunchOffer(): Boolean {
         val saved = _uiState.value.savedSession ?: return false
+        if (!_uiState.value.showResumeOffer) return false
         playChapter(
             BibleChapter(saved.gospel, saved.chapterNumber),
             (saved.elapsedSeconds * 1000).toInt()
@@ -211,7 +284,7 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
         when {
             state.isPlaying -> stop()
             resumePlaybackAfterStop() -> Unit
-            resumeFromLaunchOffer() -> Unit
+            state.showResumeOffer && state.savedSession != null -> resumeFromLaunchOffer()
             else -> playFromSelection()
         }
     }
@@ -221,7 +294,7 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun dismissResumeOffer() {
-        _uiState.update { it.copy(showResumeOffer = false, savedSession = null) }
+        dismissLaunchResumeOffer()
         persistence.clear()
     }
 
@@ -258,6 +331,7 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
         val current = _uiState.value.currentChapter ?: return
         val next = current.number + 1
         if (next <= current.gospel.chapterCount) {
+            haptic(AppHaptic.ChapterChange)
             playChapter(BibleChapter(current.gospel, next))
         } else {
             persistence.clear()
@@ -272,7 +346,11 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
 
     override fun onCleared() {
         cancelSleepTimerInternal()
-        saveCurrentPosition()
+        persistFocusedSession()
         super.onCleared()
+    }
+
+    private fun haptic(kind: AppHaptic) {
+        HapticFeedback.perform(getApplication(), kind)
     }
 }

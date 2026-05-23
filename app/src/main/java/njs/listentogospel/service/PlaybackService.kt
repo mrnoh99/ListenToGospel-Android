@@ -9,6 +9,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import njs.listentogospel.ListenToGospelApp
 import njs.listentogospel.MainActivity
 import njs.listentogospel.R
 
@@ -33,7 +34,14 @@ class PlaybackService : Service() {
         return START_NOT_STICKY
     }
 
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        stopPlaybackBecauseAppClosed()
+        stopSelf()
+        super.onTaskRemoved(rootIntent)
+    }
+
     override fun onDestroy() {
+        stopPlaybackBecauseAppClosed()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
         } else {
@@ -41,6 +49,10 @@ class PlaybackService : Service() {
             stopForeground(true)
         }
         super.onDestroy()
+    }
+
+    private fun stopPlaybackBecauseAppClosed() {
+        (application as? ListenToGospelApp)?.audioPlayer?.stopBecauseAppClosed()
     }
 
     private fun createNotificationChannelIfNeeded() {

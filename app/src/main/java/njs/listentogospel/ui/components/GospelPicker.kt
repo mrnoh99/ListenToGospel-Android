@@ -1,7 +1,6 @@
 package njs.listentogospel.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,7 +19,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import njs.listentogospel.model.Gospel
+import njs.listentogospel.ui.hapticClickable
 import njs.listentogospel.ui.theme.AppControlLayout
+import njs.listentogospel.util.AppHaptic
 
 @Composable
 fun GospelPicker(
@@ -76,7 +77,7 @@ private fun GospelPickerCell(
             .height(AppControlLayout.barHeight)
             .clip(shape)
             .background(backgroundColor)
-            .clickable(onClick = onClick),
+            .hapticClickable(kind = AppHaptic.Selection, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Text(

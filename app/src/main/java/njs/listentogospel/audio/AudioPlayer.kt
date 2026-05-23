@@ -100,6 +100,11 @@ class AudioPlayer(private val context: Context) {
         abandonAudioFocus()
     }
 
+    /** Stops playback when the user closes the app task (recents swipe or back to exit). */
+    fun stopBecauseAppClosed() {
+        stop()
+    }
+
     fun getCurrentPositionMs(): Int = mediaPlayer?.currentPosition ?: _state.value.positionMs
 
     fun reassertPlaybackIfNeeded() {

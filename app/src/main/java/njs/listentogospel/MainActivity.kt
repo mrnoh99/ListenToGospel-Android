@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -17,8 +18,11 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import njs.listentogospel.ui.MainScreen
 import njs.listentogospel.ui.theme.ListenToGospelTheme
+import njs.listentogospel.viewmodel.BiblePlayerViewModel
 
 class MainActivity : ComponentActivity() {
+
+    private val playerViewModel: BiblePlayerViewModel by viewModels()
 
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -46,6 +50,18 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         (application as ListenToGospelApp).audioPlayer.reassertPlaybackIfNeeded()
+    }
+
+    override fun onStop() {
+        playerViewModel.persistFocusedSession()
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        if (isFinishing) {
+            (application as ListenToGospelApp).audioPlayer.stopBecauseAppClosed()
+        }
+        super.onDestroy()
     }
 
     private fun requestNotificationPermissionIfNeeded() {
