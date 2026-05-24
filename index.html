@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="가톨릭 4복음 듣기 Android 앱 복음서듣기. 백그라운드 재생, 수면 타이머, 이어 듣기 지원." />
+  <meta name="description" content="가톨릭 4복음 듣기 Android 앱 복음서듣기. TalkBack 접근성 지원, 백그라운드 재생, 수면 타이머, 이어 듣기." />
   <title>복음서듣기 — 가톨릭 복음 듣기 (Android)</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="canonical" href="./" />
@@ -16,6 +16,18 @@
   </header>
 
   <main>
+    <section class="accessibility-callout" aria-labelledby="a11y-teaser">
+      <h2 id="a11y-teaser">TalkBack 접근성 포함</h2>
+      <p>
+        <strong>Google TalkBack</strong>(스크린 리더) 사용자를 위해 앱 전체에 음성 안내를 넣었습니다.
+        복음·장 선택, 재생·정지, 수면 타이머를 눈으로 보지 않고도 이용할 수 있습니다.
+        장 번호는 <strong>십이장</strong>처럼 한글로 읽힙니다.
+      </p>
+      <p class="actions" style="margin-top: 1rem; margin-bottom: 0;">
+        <a class="btn btn-primary" href="accessibility.html">TalkBack 안내 보기</a>
+      </p>
+    </section>
+
     <section>
       <h2>앱 소개</h2>
       <p>
@@ -50,6 +62,7 @@
         <li><strong>백그라운드·화면 꺼짐 재생</strong>: 잠금 화면·다른 앱 사용 중에도 듣기 계속</li>
         <li><strong>수면 타이머</strong>: 30·60·90·120분 뒤 자동 정지 또는 「계속」 선택</li>
         <li>오프라인 재생 (앱에 포함된 오디오 파일 사용)</li>
+        <li><strong>TalkBack 접근성</strong>: 스크린 리더 음성 안내·한글 장 번호 읽기 (<a href="accessibility.html">자세히</a>)</li>
         <li>개인정보 수집 없음 (<a href="privacy.html">개인정보 처리방침</a>)</li>
       </ul>
       <div class="actions">
@@ -66,6 +79,7 @@
   <footer>
     <nav>
       <a href="index.html">홈</a>
+      <a href="accessibility.html">TalkBack</a>
       <a href="support.html">지원</a>
       <a href="privacy.html">개인정보</a>
     </nav>
