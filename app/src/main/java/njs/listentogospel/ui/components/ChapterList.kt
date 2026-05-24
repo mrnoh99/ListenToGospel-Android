@@ -25,6 +25,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import njs.listentogospel.ui.hideFromAccessibilityTree
+import njs.listentogospel.ui.mergedButtonSemantics
+import njs.listentogospel.util.AccessibilitySupport
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
@@ -157,9 +160,19 @@ private fun ChapterRow(
     modifier: Modifier = Modifier
 ) {
     val progress = if (durationMs > 0) positionMs.toFloat() / durationMs else 0f
+    val stateDescription = AccessibilitySupport.chapterRowStateDescription(
+        isCurrentlyPlaying = isCurrentlyPlaying,
+        canResume = canResume,
+        positionMs = positionMs,
+        durationMs = durationMs
+    )
 
     Column(
         modifier = modifier
+            .mergedButtonSemantics(
+                label = AccessibilitySupport.spokenChapterTitle(chapter),
+                stateDescription = stateDescription
+            )
             .fillMaxWidth()
             .height(AppControlLayout.chapterRowMinHeight)
             .background(if (isActive) PlayingRowBackground else MaterialTheme.colorScheme.background)
@@ -172,7 +185,9 @@ private fun ChapterRow(
         ) {
             Text(
                 text = chapter.title,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .hideFromAccessibilityTree(),
                 color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 17.sp,
                 fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal,
@@ -182,7 +197,9 @@ private fun ChapterRow(
             if (isActive && durationMs > 0) {
                 Text(
                     text = "${formatPlaybackTime(positionMs)} / ${formatPlaybackTime(durationMs)}",
-                    modifier = Modifier.padding(start = 8.dp),
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .hideFromAccessibilityTree(),
                     color = MaterialTheme.colorScheme.tertiary,
                     fontSize = 12.sp,
                     fontFamily = FontFamily.Monospace,
@@ -199,6 +216,7 @@ private fun ChapterRow(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .size(18.dp)
+                            .hideFromAccessibilityTree()
                     )
                 }
                 canResume -> {
@@ -209,6 +227,7 @@ private fun ChapterRow(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .size(16.dp)
+                            .hideFromAccessibilityTree()
                     )
                 }
                 isSelected -> {
@@ -219,6 +238,7 @@ private fun ChapterRow(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .size(18.dp)
+                            .hideFromAccessibilityTree()
                     )
                 }
             }
@@ -230,7 +250,8 @@ private fun ChapterRow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 6.dp)
-                    .height(3.dp),
+                    .height(3.dp)
+                    .hideFromAccessibilityTree(),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.22f)
             )

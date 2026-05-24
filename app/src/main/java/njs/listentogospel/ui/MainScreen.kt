@@ -19,6 +19,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -63,7 +67,8 @@ fun MainScreen(viewModel: BiblePlayerViewModel = viewModel()) {
             text = "복음서듣기",
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = AppControlLayout.topContentInset),
+                .padding(top = AppControlLayout.topContentInset)
+                .semantics { heading() },
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold
@@ -97,7 +102,8 @@ fun MainScreen(viewModel: BiblePlayerViewModel = viewModel()) {
                 text = message,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 4.dp),
+                    .padding(bottom = 4.dp)
+                    .semantics { liveRegion = LiveRegionMode.Polite },
                 color = Color(0xFFFF9500),
                 fontSize = 15.sp
             )

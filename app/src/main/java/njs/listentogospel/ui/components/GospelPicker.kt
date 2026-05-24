@@ -13,6 +13,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import njs.listentogospel.ui.mergedButtonSemantics
+import njs.listentogospel.util.AccessibilitySupport
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -74,6 +76,9 @@ private fun GospelPickerCell(
 
     Box(
         modifier = modifier
+            .mergedButtonSemantics(
+                label = AccessibilitySupport.gospelPickerLabel(gospel, isSelected)
+            )
             .height(AppControlLayout.barHeight)
             .clip(shape)
             .background(backgroundColor)

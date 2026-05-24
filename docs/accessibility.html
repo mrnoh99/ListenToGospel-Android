@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="복음서듣기 Android 앱은 Google TalkBack(스크린 리더)을 기본 지원합니다. 장 번호 한글 읽기, 재생·수면 타이머 음성 안내." />
+  <title>TalkBack 접근성 — 복음서듣기 (Android)</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="canonical" href="./accessibility.html" />
+</head>
+<body>
+  <p class="page-doxology">+ 찬미 예수님</p>
+  <header class="accessibility-hero">
+    <p class="accessibility-badge" aria-hidden="true">접근성 포함</p>
+    <h1>TalkBack을 지원합니다</h1>
+    <p class="tagline">
+      <strong>복음서듣기</strong> Android 앱은 처음부터 스크린 리더 사용을 염두에 두고 만들었습니다.<br />
+      시각에 의존하지 않고도 복음 선택·장 재생·수면 타이머를 음성으로 이용할 수 있습니다.
+    </p>
+  </header>
+
+  <main>
+    <section class="accessibility-callout" aria-labelledby="included-heading">
+      <h2 id="included-heading">앱에 TalkBack이 포함되어 있습니다</h2>
+      <p>
+        별도의 「접근성 모드」를 켤 필요가 없습니다. 기기에서 <strong>TalkBack</strong>(또는 호환 스크린 리더)만
+        사용 설정하면, 앱 화면의 버튼·목록·재생 상태가 <strong>한국어 음성</strong>으로 안내됩니다.
+      </p>
+      <p>
+        iOS 버전의 VoiceOver 안내 방식과 맞추어, 장 번호는 숫자가 아니라
+        <strong>한자식 읽기</strong>(예: 12장 → 「십이장」)로 읽히도록 구현했습니다.
+      </p>
+    </section>
+
+    <section>
+      <h2>TalkBack이란?</h2>
+      <p>
+        TalkBack은 Google이 Android에 제공하는 <strong>스크린 리더</strong>입니다.
+        화면을 보기 어렵거나 눈을 쉬어야 할 때, 손가락으로 화면을 탐색하면 현재 항목의 이름과
+        상태를 음성으로 들려 줍니다.
+      </p>
+      <p>
+        복음서듣기는 이 음성 안내가 자연스럽게 들리도록, 각 버튼과 목록 행에
+        <strong>접근성 라벨</strong>을 붙여 두었습니다.
+      </p>
+    </section>
+
+    <section>
+      <h2>TalkBack 켜는 방법 (Samsung·기타 Android)</h2>
+      <ol class="features" style="list-style: decimal; padding-left: 1.25rem;">
+        <li><strong>설정</strong> 앱을 엽니다.</li>
+        <li><strong>접근성</strong> → <strong>TalkBack</strong>(또는 <strong>시각</strong> → TalkBack)으로 이동합니다.</li>
+        <li><strong>TalkBack 사용</strong>을 켭니다.</li>
+        <li>일부 기기에서는 <strong>볼륨 키 위·아래를 동시에 3초</strong> 길게 눌러 TalkBack을 켜거나 끌 수 있습니다.</li>
+      </ol>
+      <p>
+        TalkBack이 켜진 상태에서 복음서듣기를 실행한 뒤,
+        한 손가락으로 <strong>오른쪽·왼쪽 스와이프</strong>로 항목을 이동하고,
+        <strong>두 번 탭</strong>으로 선택합니다.
+      </p>
+    </section>
+
+    <section>
+      <h2>앱에서 들을 수 있는 안내 예시</h2>
+      <p>화면 구성에 맞춰 TalkBack이 읽어 주는 대표적인 문구입니다.</p>
+      <div class="phrase-table-wrap">
+        <table class="phrase-table">
+          <caption>복음서듣기 TalkBack 음성 안내 예시</caption>
+          <thead>
+            <tr>
+              <th scope="col">화면</th>
+              <th scope="col">TalkBack이 읽는 예</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">앱 제목</th>
+              <td>복음서듣기 (제목)</td>
+            </tr>
+            <tr>
+              <th scope="row">복음 선택</th>
+              <td><code>마태복음, 선택됨</code> · <code>마르코복음, 선택</code></td>
+            </tr>
+            <tr>
+              <th scope="row">장 목록</th>
+              <td><code>마태복음 십이장</code> · 재생 중이면 <code>재생 중</code></td>
+            </tr>
+            <tr>
+              <th scope="row">이어 듣기 진행</th>
+              <td><code>3분 20초 / 10분 0초, 33% 재생됨</code></td>
+            </tr>
+            <tr>
+              <th scope="row">재생·정지 바</th>
+              <td><code>마태복음 오장 재생 버튼</code> · <code>… 중지 버튼</code></td>
+            </tr>
+            <tr>
+              <th scope="row">수면 타이머</th>
+              <td><code>타이머 버튼</code> — 수면 타이머를 설정합니다</td>
+            </tr>
+            <tr>
+              <th scope="row">타이머 옵션</th>
+              <td><code>30분, 선택됨</code> · <code>계속</code> 등</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top: 1rem; font-size: 0.9rem;">
+        장 번호는 <code>12</code>가 아니라 <code>십이</code>처럼 읽혀, 한국어 성경 듣기에 맞게 안내됩니다.
+      </p>
+    </section>
+
+    <section>
+      <h2>접근성으로 할 수 있는 일</h2>
+      <ul class="features">
+        <li>복음(마태·마르코·루카·요한)을 음성만으로 고르기</li>
+        <li>장 목록을 탐색하며 원하는 장 재생·정지</li>
+        <li>지금 재생 중인 장과 이어 듣기 진행률 확인</li>
+        <li>수면 타이머(30·60·90·120분·계속) 설정</li>
+        <li>백그라운드 재생 중에도 앱으로 돌아와 조작</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>자주 묻는 질문</h2>
+
+      <div class="faq-item">
+        <strong>TalkBack을 켜야만 앱을 쓸 수 있나요?</strong>
+        <p>
+          아닙니다. TalkBack은 선택 사항입니다. 켜 두면 음성 안내가 추가되고,
+          끄면 일반 터치로 그대로 사용할 수 있습니다.
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <strong>다른 스크린 리더도 되나요?</strong>
+        <p>
+          Android 표준 접근성 API를 사용하므로, TalkBack과 호환되는 많은 스크린 리더에서
+          비슷하게 동작할 수 있습니다. 공식적으로는 Google TalkBack 기준으로 안내를 맞추었습니다.
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <strong>iPhone의 VoiceOver와 같나요?</strong>
+        <p>
+          같은 앱(iOS·Android)의 사용 흐름과 읽기 방식을 맞추려 했습니다.
+          장 번호 한글 읽기, 재생 버튼·타이머 버튼 이름 등이 iOS 버전과 유사합니다.
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <strong>TalkBack 사용 중 문제가 있어요.</strong>
+        <p>
+          기기·TalkBack 버전·읽기 속도에 따라 체감이 달라질 수 있습니다.
+          <a href="support.html">지원 페이지</a>의 이메일로 알려 주시면 개선에 반영하겠습니다.
+        </p>
+      </div>
+    </section>
+
+    <div class="actions">
+      <a class="btn btn-primary" href="index.html">앱 소개로</a>
+      <a class="btn btn-secondary" href="support.html">지원 · 문의</a>
+    </div>
+  </main>
+
+  <footer>
+    <nav aria-label="사이트 메뉴">
+      <a href="index.html">홈</a>
+      <a href="accessibility.html" aria-current="page">TalkBack</a>
+      <a href="support.html">지원</a>
+      <a href="privacy.html">개인정보</a>
+    </nav>
+    <p>ListenToGospel · Android · GitHub Pages</p>
+  </footer>
+</body>
+</html>

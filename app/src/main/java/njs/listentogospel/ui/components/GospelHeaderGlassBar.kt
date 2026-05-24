@@ -16,6 +16,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import njs.listentogospel.ui.hideFromAccessibilityTree
+import njs.listentogospel.ui.mergedButtonSemantics
+import njs.listentogospel.util.AccessibilitySupport
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
@@ -42,6 +45,10 @@ fun GospelHeaderGlassBar(
     Surface(
         onClick = onSleepTimerTap,
         modifier = modifier
+            .mergedButtonSemantics(
+                label = AccessibilitySupport.sleepTimerButtonLabel,
+                hint = AccessibilitySupport.sleepTimerButtonHint
+            )
             .fillMaxWidth()
             .height(AppControlLayout.barHeight),
         shape = shape,
@@ -57,7 +64,9 @@ fun GospelHeaderGlassBar(
         ) {
             Text(
                 text = gospelName,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .hideFromAccessibilityTree(),
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -67,11 +76,14 @@ fun GospelHeaderGlassBar(
             Icon(
                 imageVector = Icons.Outlined.Timer,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface
+                tint = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.hideFromAccessibilityTree()
             )
             Text(
                 text = sleepTimerLabel,
-                modifier = Modifier.padding(start = 6.dp),
+                modifier = Modifier
+                    .padding(start = 6.dp)
+                    .hideFromAccessibilityTree(),
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.SemiBold,

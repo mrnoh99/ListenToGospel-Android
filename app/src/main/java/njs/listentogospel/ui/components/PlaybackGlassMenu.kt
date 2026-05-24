@@ -21,6 +21,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import njs.listentogospel.ui.hideFromAccessibilityTree
+import njs.listentogospel.ui.mergedButtonSemantics
+import njs.listentogospel.util.AccessibilitySupport
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
@@ -47,8 +50,12 @@ fun PlaybackGlassMenu(
     Surface(
         onClick = onPlayStop,
         modifier = modifier
+            .mergedButtonSemantics(
+                label = AccessibilitySupport.playbackButtonLabel(chapterTitle, isPlaying),
+                hint = AccessibilitySupport.playbackButtonHint(isPlaying)
+            )
             .fillMaxWidth()
-            .height(AppControlLayout.barHeight),
+            .height(AppControlLayout.playbackBarHeight),
         shape = shape,
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
         shadowElevation = 5.dp,
@@ -65,15 +72,18 @@ fun PlaybackGlassMenu(
             ) {
                 Icon(
                     imageVector = if (isPlaying) Icons.Default.Stop else Icons.Default.PlayArrow,
-                    contentDescription = if (isPlaying) "정지" else "재생",
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(30.dp)
+                    modifier = Modifier
+                        .size(AppControlLayout.playbackBarIconSize)
+                        .hideFromAccessibilityTree()
                 )
                 Text(
                     text = chapterTitle,
                     modifier = Modifier
                         .padding(start = 10.dp)
-                        .widthIn(max = 240.dp),
+                        .widthIn(max = 240.dp)
+                        .hideFromAccessibilityTree(),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
