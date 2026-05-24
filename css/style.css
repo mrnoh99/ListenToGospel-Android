@@ -291,3 +291,39 @@ footer nav a {
   color: var(--text);
   word-break: keep-all;
 }
+
+.accessibility-hero {
+  position: relative;
+}
+
+.accessibility-badge {
+  display: inline-block;
+  margin: 0 0 0.75rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent) 0%, #1e7a6f 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 14px rgba(45, 157, 143, 0.35);
+}
+
+.accessibility-hero h1 {
+  font-size: clamp(1.85rem, 5vw, 2.5rem);
+  line-height: 1.2;
+}
+
+.accessibility-hero .tagline {
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+  color: var(--text);
+  line-height: 1.65;
+}
+
+.accessibility-hero .tagline strong {
+  color: var(--accent-hover);
+}
