@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.platform.LocalView
 import njs.listentogospel.util.AppHaptic
 import njs.listentogospel.util.HapticFeedback
@@ -22,13 +21,14 @@ fun hapticClick(haptic: (AppHaptic) -> Unit, kind: AppHaptic = AppHaptic.Selecti
     }
 }
 
+@Composable
 fun Modifier.hapticClickable(
     kind: AppHaptic = AppHaptic.Selection,
     enabled: Boolean = true,
     onClick: () -> Unit
-): Modifier = composed {
+): Modifier {
     val view = LocalView.current
-    clickable(enabled = enabled, onClick = {
+    return clickable(enabled = enabled, onClick = {
         HapticFeedback.perform(view, kind)
         onClick()
     })

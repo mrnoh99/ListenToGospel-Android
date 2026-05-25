@@ -9,7 +9,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.pointerInput
@@ -39,7 +38,7 @@ private fun buildAccessibilityLabel(label: String, hint: String? = null): String
     }
 }
 
-/** Single-tap handler that does not register Compose [clickable] accessibility actions. */
+/** Single-tap handler that does not register Compose foundation clickable accessibility actions. */
 fun Modifier.directTapClickable(
     enabled: Boolean = true,
     onClick: () -> Unit
@@ -51,6 +50,7 @@ fun Modifier.directTapClickable(
 /**
  * TalkBack on: semantic click. TalkBack off: [directTapClickable] only (true single tap).
  */
+@Composable
 fun Modifier.accessibleHapticClickable(
     label: String,
     hint: String? = null,
@@ -59,7 +59,7 @@ fun Modifier.accessibleHapticClickable(
     kind: AppHaptic = AppHaptic.Selection,
     enabled: Boolean = true,
     onClick: () -> Unit
-): Modifier = composed {
+): Modifier {
     val view = LocalView.current
     val useTalkBack = LocalAppAccessibilityEnabled.current
     val performClick = {
@@ -67,8 +67,8 @@ fun Modifier.accessibleHapticClickable(
         onClick()
     }
 
-    if (useTalkBack) {
-        Modifier.semantics(mergeDescendants = true) {
+    return if (useTalkBack) {
+        semantics(mergeDescendants = true) {
             contentDescription = label
             hint?.let { this.stateDescription = it }
             stateDescription?.let { this.stateDescription = it }
@@ -78,22 +78,20 @@ fun Modifier.accessibleHapticClickable(
             }
         }
     } else {
-        Modifier.directTapClickable(enabled = enabled, onClick = performClick)
+        directTapClickable(enabled = enabled, onClick = performClick)
     }
 }
 
+@Composable
 fun Modifier.accessibleSurfaceLabel(
     label: String,
     hint: String? = null,
     stateDescription: String? = null
-): Modifier = composed {
-    if (!LocalAppAccessibilityEnabled.current) {
-        Modifier
-    } else {
-        Modifier.semantics(mergeDescendants = true) {
-            contentDescription = buildAccessibilityLabel(label, hint)
-            stateDescription?.let { this.stateDescription = it }
-        }
+): Modifier {
+    if (!LocalAppAccessibilityEnabled.current) return this
+    return semantics(mergeDescendants = true) {
+        contentDescription = buildAccessibilityLabel(label, hint)
+        stateDescription?.let { this.stateDescription = it }
     }
 }
 
@@ -143,7 +141,7 @@ fun AccessibleClickSurface(
     }
 }
 
-/** Kept for call sites; mode is driven from [MainActivity] via [LocalAppAccessibilityEnabled]. */
+/** Kept for call sites; mode is driven from MainActivity via [LocalAppAccessibilityEnabled]. */
 @Composable
 fun TrackAccessibilityState(content: @Composable () -> Unit) {
     content()
