@@ -24,18 +24,20 @@ object AccessibilitySupport {
     }
 
     fun spokenChapterTitle(chapter: BibleChapter): String {
-        return "${chapter.gospel.koreanName} ${spokenSinoKoreanNumber(chapter.number)}장"
+        return "${chapter.gospel.shortName}복음서 ${spokenSinoKoreanNumber(chapter.number)}장"
     }
 
     fun spokenChapterTitle(title: String): String {
         val match = Regex("""(\d+)\s*장""").find(title) ?: return title
         val number = match.groupValues[1].toIntOrNull() ?: return title
         val prefix = title.substring(0, match.range.first).trim()
-        return "$prefix ${spokenSinoKoreanNumber(number)}장"
+        val gospel = Gospel.entries.find { prefix.startsWith(it.koreanName) || prefix.startsWith(it.shortName) }
+        val spokenPrefix = gospel?.let { "${it.shortName}복음서" } ?: prefix
+        return "$spokenPrefix ${spokenSinoKoreanNumber(number)}장"
     }
 
-    fun playbackButtonLabel(chapterTitle: String, isPlaying: Boolean): String {
-        val spoken = spokenChapterTitle(chapterTitle)
+    fun playbackButtonLabel(chapter: BibleChapter, isPlaying: Boolean): String {
+        val spoken = spokenChapterTitle(chapter)
         return if (isPlaying) "$spoken 중지 버튼" else "$spoken 재생 버튼"
     }
 
@@ -51,14 +53,8 @@ object AccessibilitySupport {
         }
     }
 
-    fun chapterRowStateDescription(
-        isCurrentlyPlaying: Boolean,
-        canResume: Boolean,
-        positionMs: Int,
-        durationMs: Int
-    ): String? {
-        if (isCurrentlyPlaying) return "재생 중"
-        if (!canResume || durationMs <= 0) return null
+    /** Spoken once when resuming playback (not on fresh play or row focus). */
+    fun resumeProgressAnnouncement(positionMs: Int, durationMs: Int): String {
         val elapsed = spokenDuration((positionMs / 1000).toLong())
         val total = spokenDuration((durationMs / 1000).toLong())
         val percent = ((positionMs.toFloat() / durationMs) * 100).toInt().coerceIn(0, 100)

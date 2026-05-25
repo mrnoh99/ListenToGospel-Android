@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,13 +26,17 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import njs.listentogospel.ui.LocalAppAccessibilityEnabled
+import njs.listentogospel.ui.TrackAccessibilityState
 import njs.listentogospel.ui.hapticClick
+import njs.listentogospel.util.AccessibilitySupport
 import njs.listentogospel.ui.components.ChapterList
 import njs.listentogospel.ui.components.GospelHeaderGlassBar
 import njs.listentogospel.ui.components.GospelPicker
@@ -55,20 +60,26 @@ fun MainScreen(viewModel: BiblePlayerViewModel = viewModel()) {
         AppControlLayout.controlsOverlayBottomReserve.roundToPx()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .padding(horizontal = 16.dp)
-    ) {
+    TrackAccessibilityState {
+        val useTalkBack = LocalAppAccessibilityEnabled.current
+        AnnounceResumeProgressOnce(uiState = uiState, viewModel = viewModel)
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp)
+        ) {
         Text(
             text = "복음서듣기",
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = AppControlLayout.topContentInset)
-                .semantics { heading() },
+                .then(
+                    if (useTalkBack) Modifier.semantics { heading() } else Modifier
+                ),
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold
@@ -103,7 +114,13 @@ fun MainScreen(viewModel: BiblePlayerViewModel = viewModel()) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 4.dp)
-                    .semantics { liveRegion = LiveRegionMode.Polite },
+                    .then(
+                        if (useTalkBack) {
+                            Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+                        } else {
+                            Modifier
+                        }
+                    ),
                 color = Color(0xFFFF9500),
                 fontSize = 15.sp
             )
@@ -134,7 +151,7 @@ fun MainScreen(viewModel: BiblePlayerViewModel = viewModel()) {
             )
 
             PlaybackGlassMenu(
-                chapterTitle = uiState.playbackTargetChapter.title,
+                chapter = uiState.playbackTargetChapter,
                 isPlaying = uiState.isPlaying,
                 onPlayStop = hapticClick(
                     haptic,
@@ -159,16 +176,43 @@ fun MainScreen(viewModel: BiblePlayerViewModel = viewModel()) {
             fontSize = 8.sp,
             textAlign = TextAlign.End
         )
-    }
+        }
 
-    if (showSleepTimerSheet) {
-        SleepTimerSheet(
-            selectedOption = uiState.sleepTimerOption,
-            onSelect = { option ->
-                viewModel.setSleepTimer(option)
-                showSleepTimerSheet = false
-            },
-            onDismiss = { showSleepTimerSheet = false }
+        if (showSleepTimerSheet) {
+            SleepTimerSheet(
+                selectedOption = uiState.sleepTimerOption,
+                onSelect = { option ->
+                    viewModel.setSleepTimer(option)
+                    showSleepTimerSheet = false
+                },
+                onDismiss = { showSleepTimerSheet = false }
+            )
+        }
+    }
+}
+
+@Composable
+private fun AnnounceResumeProgressOnce(
+    uiState: UiState,
+    viewModel: BiblePlayerViewModel
+) {
+    val view = LocalView.current
+    val accessibilityEnabled = LocalAppAccessibilityEnabled.current
+
+    LaunchedEffect(
+        accessibilityEnabled,
+        uiState.isPlaying,
+        uiState.currentChapter,
+        uiState.durationMs
+    ) {
+        if (!accessibilityEnabled) return@LaunchedEffect
+        if (!uiState.isPlaying || uiState.durationMs <= 0) return@LaunchedEffect
+        if (!viewModel.consumeResumeProgressAnnouncement()) return@LaunchedEffect
+        view.announceForAccessibility(
+            AccessibilitySupport.resumeProgressAnnouncement(
+                positionMs = uiState.positionMs,
+                durationMs = uiState.durationMs
+            )
         )
     }
 }

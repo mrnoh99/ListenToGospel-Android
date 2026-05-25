@@ -12,10 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
+import njs.listentogospel.ui.accessibleHapticClickable
 import njs.listentogospel.util.AccessibilitySupport
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -23,7 +20,6 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import njs.listentogospel.ui.hapticClickable
 import njs.listentogospel.util.AppHaptic
 import njs.listentogospel.viewmodel.SleepTimerOption
 
@@ -95,14 +91,11 @@ private fun SleepTimerOptionRow(
         text = label,
         modifier = Modifier
             .fillMaxWidth()
-            .semantics {
-                contentDescription = AccessibilitySupport.sleepTimerOptionLabel(
-                    spokenTitle,
-                    isSelected
-                )
-                role = Role.Button
-            }
-            .hapticClickable(kind = AppHaptic.Selection, onClick = onClick)
+            .accessibleHapticClickable(
+                label = AccessibilitySupport.sleepTimerOptionLabel(spokenTitle, isSelected),
+                kind = AppHaptic.Selection,
+                onClick = onClick
+            )
             .padding(vertical = optionRowVerticalPadding),
         textAlign = TextAlign.Center,
         color = if (isSelected) {

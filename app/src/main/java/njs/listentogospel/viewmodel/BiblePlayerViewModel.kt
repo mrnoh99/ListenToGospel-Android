@@ -68,6 +68,7 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
     private val persistence = PlaybackPersistence(application)
     private var sleepTimer: CountDownTimer? = null
     private var launchResumeOfferDismissed = false
+    private var pendingResumeProgressAnnouncement = false
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
@@ -95,6 +96,20 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun selectGospelInGrid(gospel: Gospel) {
+        val state = _uiState.value
+        if (gospel == state.selectedGospel) {
+            val chapter = when {
+                state.isPlaying && state.currentChapter?.gospel == gospel -> state.currentChapter
+                else -> stoppedResumeChapter(state, gospel)
+            }
+            if (chapter != null) {
+                _uiState.update { it.copy(selectedChapter = chapter) }
+                requestScroll(chapter, ChapterScrollAlignment.CENTER)
+                persistFocusedSession()
+            }
+            return
+        }
+
         _uiState.update { state ->
             val chapter = when {
                 state.isPlaying && state.currentChapter?.gospel == gospel -> state.currentChapter
@@ -105,6 +120,12 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
         }
         requestScroll(BibleChapter(gospel, 1), ChapterScrollAlignment.TOP)
         persistFocusedSession()
+    }
+
+    private fun stoppedResumeChapter(state: UiState, gospel: Gospel): BibleChapter? {
+        if (state.isPlaying) return null
+        val bookmark = state.resumeBookmark ?: return null
+        return bookmark.chapter.takeIf { it.gospel == gospel }
     }
 
     /** Saves gospel, chapter, and playback position for the next app launch. */
@@ -218,9 +239,16 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
         return !state.isPlaying && state.resumeBookmark?.chapter == chapter
     }
 
+    fun consumeResumeProgressAnnouncement(): Boolean {
+        if (!pendingResumeProgressAnnouncement) return false
+        pendingResumeProgressAnnouncement = false
+        return true
+    }
+
     fun playChapter(chapter: BibleChapter, startMs: Int = 0) {
         if (_uiState.value.isPlaying) saveCurrentPosition()
         dismissLaunchResumeOffer()
+        pendingResumeProgressAnnouncement = startMs > 0
         _uiState.update {
             it.copy(
                 selectedGospel = chapter.gospel,

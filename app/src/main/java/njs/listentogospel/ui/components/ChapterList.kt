@@ -25,8 +25,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import njs.listentogospel.ui.accessibleHapticClickable
 import njs.listentogospel.ui.hideFromAccessibilityTree
-import njs.listentogospel.ui.mergedButtonSemantics
 import njs.listentogospel.util.AccessibilitySupport
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
@@ -38,7 +38,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import njs.listentogospel.model.BibleChapter
 import njs.listentogospel.model.Gospel
-import njs.listentogospel.ui.hapticClickable
 import njs.listentogospel.ui.theme.AppControlLayout
 import njs.listentogospel.ui.theme.PlayingRowBackground
 import njs.listentogospel.util.AppHaptic
@@ -160,23 +159,16 @@ private fun ChapterRow(
     modifier: Modifier = Modifier
 ) {
     val progress = if (durationMs > 0) positionMs.toFloat() / durationMs else 0f
-    val stateDescription = AccessibilitySupport.chapterRowStateDescription(
-        isCurrentlyPlaying = isCurrentlyPlaying,
-        canResume = canResume,
-        positionMs = positionMs,
-        durationMs = durationMs
-    )
-
     Column(
         modifier = modifier
-            .mergedButtonSemantics(
-                label = AccessibilitySupport.spokenChapterTitle(chapter),
-                stateDescription = stateDescription
-            )
             .fillMaxWidth()
             .height(AppControlLayout.chapterRowMinHeight)
             .background(if (isActive) PlayingRowBackground else MaterialTheme.colorScheme.background)
-            .hapticClickable(kind = hapticKind, onClick = onClick)
+            .accessibleHapticClickable(
+                label = AccessibilitySupport.spokenChapterTitle(chapter),
+                kind = hapticKind,
+                onClick = onClick
+            )
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Row(
