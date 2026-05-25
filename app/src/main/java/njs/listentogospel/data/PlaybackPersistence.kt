@@ -16,7 +16,7 @@ class PlaybackPersistence(context: Context) {
         prefs.edit()
             .putInt("gospel_ordinal", gospel.ordinal)
             .putInt("chapter_number", chapterNumber)
-            .putFloat("elapsed_seconds", elapsedSeconds.toFloat())
+            .putLong("elapsed_ms", (elapsedSeconds * 1000).toLong())
             .apply()
     }
 
@@ -26,7 +26,12 @@ class PlaybackPersistence(context: Context) {
         return SavedSession(
             gospel = Gospel.values()[ordinal],
             chapterNumber = prefs.getInt("chapter_number", 1),
-            elapsedSeconds = prefs.getFloat("elapsed_seconds", 0f).toDouble()
+            elapsedSeconds = when {
+                prefs.contains("elapsed_ms") ->
+                    prefs.getLong("elapsed_ms", 0L) / 1000.0
+                else ->
+                    prefs.getFloat("elapsed_seconds", 0f).toDouble()
+            }
         )
     }
 

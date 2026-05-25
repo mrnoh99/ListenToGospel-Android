@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.PowerManager
 import android.util.Log
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -45,6 +46,7 @@ class AudioPlayer(private val context: Context) {
     private var pendingChapter: BibleChapter? = null
     private var pendingStartMs = 0
     private var playbackJob: Job? = null
+    private var playbackGeneration = 0
 
     @Suppress("DEPRECATION")
     private val legacyFocusListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
@@ -55,6 +57,7 @@ class AudioPlayer(private val context: Context) {
     val state: StateFlow<AudioState> = _state.asStateFlow()
 
     fun play(chapter: BibleChapter, startMs: Int = 0) {
+        val generation = ++playbackGeneration
         playbackJob?.cancel()
         abandonAudioFocus()
         releasePlayer()
@@ -80,7 +83,7 @@ class AudioPlayer(private val context: Context) {
                     )
                 }
             }
-            else -> startPendingPlayback()
+            else -> startPendingPlayback(generation)
         }
     }
 
@@ -125,65 +128,101 @@ class AudioPlayer(private val context: Context) {
         _state.update { it.copy(chapterJustCompleted = false) }
     }
 
-    private fun startPendingPlayback() {
+    private fun startPendingPlayback(generation: Int) {
         val chapter = pendingChapter ?: return
         val startMs = pendingStartMs
         pendingChapter = null
 
         playbackJob = scope.launch {
             try {
-                val audioFile = withContext(Dispatchers.IO) {
-                    resolveChapterAudioFile(chapter)
+                beginPlayback(chapter, startMs, generation)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (first: Exception) {
+                if (generation != playbackGeneration) return@launch
+                Log.w(TAG, "Playback failed for ${chapter.assetPath}, retrying after cache clear", first)
+                invalidateChapterCache(chapter)
+                try {
+                    beginPlayback(chapter, startMs, generation)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (second: Exception) {
+                    if (generation != playbackGeneration) return@launch
+                    Log.e(TAG, "Failed to play ${chapter.assetPath}", second)
+                    stopForegroundService()
+                    failPlayback(playbackErrorMessage(second))
                 }
-                startForegroundService(chapter)
-
-                val player = MediaPlayer().apply {
-                    setWakeMode(context.applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
-                    setAudioAttributes(
-                        AudioAttributes.Builder()
-                            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                            .setUsage(AudioAttributes.USAGE_MEDIA)
-                            .build()
-                    )
-                    setDataSource(audioFile.absolutePath)
-                    setVolume(1f, 1f)
-                    setOnCompletionListener { handleCompletion() }
-                    setOnErrorListener { _, what, extra ->
-                        Log.e(TAG, "MediaPlayer error what=$what extra=$extra")
-                        scope.launch {
-                            failPlayback("오디오 재생 중 오류가 발생했습니다.")
-                        }
-                        true
-                    }
-                }
-
-                withContext(Dispatchers.IO) {
-                    player.prepare()
-                }
-
-                if (startMs > 0) {
-                    player.seekTo(startMs)
-                }
-                player.start()
-                mediaPlayer = player
-
-                _state.update {
-                    it.copy(
-                        currentChapter = chapter,
-                        isPlaying = true,
-                        durationMs = player.duration,
-                        positionMs = startMs,
-                        chapterJustCompleted = false,
-                        playbackError = null
-                    )
-                }
-                startPositionPolling()
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to play ${chapter.assetPath}", e)
-                stopForegroundService()
-                failPlayback(playbackErrorMessage(e))
             }
         }
+    }
+
+    private suspend fun beginPlayback(
+        chapter: BibleChapter,
+        startMs: Int,
+        generation: Int
+    ) {
+        if (generation != playbackGeneration) return
+
+        val audioFile = withContext(Dispatchers.IO) {
+            resolveChapterAudioFile(chapter)
+        }
+        if (generation != playbackGeneration) return
+
+        startForegroundService(chapter)
+
+        val player = MediaPlayer().apply {
+            setWakeMode(context.applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
+            setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .build()
+            )
+            setDataSource(audioFile.absolutePath)
+            setVolume(1f, 1f)
+            setOnCompletionListener { handleCompletion() }
+            setOnErrorListener { _, what, extra ->
+                Log.e(TAG, "MediaPlayer error what=$what extra=$extra")
+                scope.launch {
+                    failPlayback("오디오 재생 중 오류가 발생했습니다.")
+                }
+                true
+            }
+        }
+
+        withContext(Dispatchers.IO) {
+            player.prepare()
+        }
+        if (generation != playbackGeneration) {
+            player.release()
+            return
+        }
+
+        val durationMs = player.duration
+        val seekMs = safeSeekPositionMs(startMs, durationMs)
+        if (seekMs > 0) {
+            player.seekTo(seekMs)
+        }
+        player.start()
+        mediaPlayer = player
+
+        _state.update {
+            it.copy(
+                currentChapter = chapter,
+                isPlaying = true,
+                durationMs = durationMs,
+                positionMs = seekMs,
+                chapterJustCompleted = false,
+                playbackError = null
+            )
+        }
+        startPositionPolling()
+    }
+
+    private fun safeSeekPositionMs(requestedMs: Int, durationMs: Int): Int {
+        if (requestedMs <= 0) return 0
+        if (durationMs <= 0) return requestedMs
+        return requestedMs.coerceIn(0, (durationMs - 250).coerceAtLeast(0))
     }
 
     private fun playbackErrorMessage(e: Exception): String {
@@ -194,15 +233,35 @@ class AudioPlayer(private val context: Context) {
         }
     }
 
+    private fun chapterCacheFile(chapter: BibleChapter): File =
+        File(context.cacheDir, chapter.assetPath.replace("/", "_"))
+
+    private fun invalidateChapterCache(chapter: BibleChapter) {
+        chapterCacheFile(chapter).takeIf { it.exists() }?.delete()
+    }
+
+    private fun assetByteLength(assetPath: String): Long =
+        context.assets.openFd(assetPath).use { it.length }
+
     private fun resolveChapterAudioFile(chapter: BibleChapter): File {
-        val cacheFile = File(context.cacheDir, chapter.assetPath.replace("/", "_"))
-        if (cacheFile.exists() && cacheFile.length() > 0L) {
+        val cacheFile = chapterCacheFile(chapter)
+        val expectedLength = assetByteLength(chapter.assetPath)
+
+        if (cacheFile.exists() && cacheFile.length() == expectedLength) {
             return cacheFile
         }
 
+        cacheFile.takeIf { it.exists() }?.delete()
         context.assets.open(chapter.assetPath).use { input ->
             cacheFile.parentFile?.mkdirs()
             cacheFile.outputStream().use { output -> input.copyTo(output) }
+        }
+
+        if (!cacheFile.exists() || cacheFile.length() != expectedLength) {
+            cacheFile.delete()
+            throw java.io.IOException(
+                "Incomplete audio cache for ${chapter.assetPath} (expected $expectedLength bytes)"
+            )
         }
         return cacheFile
     }
@@ -292,7 +351,7 @@ class AudioPlayer(private val context: Context) {
         when (focusChange) {
             AudioManager.AUDIOFOCUS_GAIN -> {
                 if (pendingChapter != null) {
-                    startPendingPlayback()
+                    startPendingPlayback(playbackGeneration)
                     return
                 }
                 mediaPlayer?.start()
