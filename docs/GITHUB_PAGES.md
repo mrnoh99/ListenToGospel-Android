@@ -42,12 +42,20 @@
 
 방법 1과 2는 **동시에 쓰지 말고** 하나만 선택합니다.
 
+## 페이지 구성
+
+| 파일 | Play Console 용도 |
+|------|-------------------|
+| `index.html` | 마케팅 URL (앱 소개) |
+| `support.html` | 지원 URL |
+| `privacy.html` | 개인정보 처리방침 URL |
+| `accessibility.html` | TalkBack 안내 (선택, 스토어 설명에 링크 가능) |
+
 ## 수정할 항목
 
-- `index.html`: `#play-store-link` 의 `href` 를 Play Store 등록 후 실제 앱 URL로 교체
-- `support.html`: 지원 이메일은 `jsnoh2010@gmail.com` 로 설정되어 있습니다.
-- Google Play **개인정보 처리방침** 항목에 `privacy.html` 전체 URL을 넣을 수 있습니다.
-- 앱 표기명은 문서 전반에서 **복음서듣기** 로 통일되어 있습니다.
+- `index.html`: Play Store 출시 후 `id=njs.listentogospel` 링크가 열리는지 확인
+- 지원 이메일: `jsnoh2010@gmail.com`
+- 앱 표기명: **복음서듣기**
 
 ## 참고
 
