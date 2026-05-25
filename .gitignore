@@ -16,3 +16,12 @@ app/src/main/assets/AudioFiles/
 # Full-audio backup created by scripts/audio_test_mode.* (short-clip chapter testing)
 .audio-backup/
 .audio-test-mode
+
+# Release signing (never commit)
+keystore.properties
+*.jks
+*.keystore
+upload-keystore.jks
+
+# Local signed bundle output (do not commit)
+app/release/
