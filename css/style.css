@@ -327,3 +327,67 @@ footer nav a {
 .accessibility-hero .tagline strong {
   color: var(--accent-hover);
 }
+
+.app-card {
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem 1.35rem;
+  margin: 1.25rem 0 0;
+}
+
+.app-card dl {
+  margin: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.app-card dt {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.app-card dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.98rem;
+}
+
+.store-urls {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+}
+
+.store-urls li {
+  margin-bottom: 0.75rem;
+  color: var(--muted);
+}
+
+.store-urls code {
+  display: block;
+  margin-top: 0.25rem;
+  padding: 0.5rem 0.65rem;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: var(--link);
+  word-break: break-all;
+}
+
+.store-banner {
+  background: rgba(110, 181, 255, 0.08);
+  border: 1px solid rgba(110, 181, 255, 0.3);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.store-banner strong {
+  color: var(--text);
+}

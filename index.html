@@ -3,7 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="가톨릭 4복음 듣기 Android 앱 복음서듣기. TalkBack 접근성 지원, 백그라운드 재생, 수면 타이머, 이어 듣기." />
+  <meta name="description" content="복음서듣기 — 가톨릭 4복음(마태오·마르코·루카·요한) Android 앱. 오프라인 재생, 장 연속 재생, TalkBack 접근성, 수면 타이머." />
+  <meta name="application-name" content="복음서듣기" />
+  <meta property="og:title" content="복음서듣기 — 가톨릭 복음 듣기 (Android)" />
+  <meta property="og:description" content="4복음 89장 오디오를 오프라인으로 듣습니다. TalkBack·이어 듣기·백그라운드 재생." />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ko_KR" />
   <title>복음서듣기 — 가톨릭 복음 듣기 (Android)</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="canonical" href="./" />
@@ -12,78 +17,119 @@
   <p class="page-doxology">+ 찬미 예수님</p>
   <header>
     <h1>복음서듣기</h1>
-    <p class="tagline">가톨릭 성경복음을 듣는 <strong>Android</strong> 앱</p>
+    <p class="tagline">마태오·마르코·루카·요한 복음을 장별로 듣는 <strong>Android</strong> 앱</p>
   </header>
 
   <main>
-    <section class="accessibility-callout" aria-labelledby="a11y-teaser">
-      <h2 id="a11y-teaser">TalkBack 접근성 포함</h2>
-      <p>
-        <strong>Google TalkBack</strong>(스크린 리더) 사용자를 위해 앱 전체에 음성 안내를 넣었습니다.
-        복음·장 선택, 재생·정지, 수면 타이머를 눈으로 보지 않고도 이용할 수 있습니다.
-        장 번호는 <strong>십이장</strong>처럼 한글로 읽힙니다.
-      </p>
-      <p class="actions" style="margin-top: 1rem; margin-bottom: 0;">
-        <a class="btn btn-primary" href="accessibility.html">TalkBack 안내 보기</a>
-      </p>
-    </section>
+    <p class="store-banner" role="note">
+      <strong>Google Play Console URL</strong> — 마케팅(기본) 페이지로 이 주소(<code>index.html</code>)를 사용하세요.
+      지원·개인정보는 아래 링크를 각각 등록합니다.
+    </p>
 
     <section>
       <h2>앱 소개</h2>
       <p>
-        마태오·마르코·루카·요한 복음을 장별로 선택해 들을 수 있습니다.
-        이동 중이나 잠들기 전처럼 성경을 펼치기 어려울 때도 말씀에 귀 기울일 수 있도록
-        단순한 화면과 재생에 집중했습니다.
+        가톨릭 한국어 성경 복음 4권, 총 89장의 오디오를 스마트폰에서 들을 수 있습니다.
+        복잡한 메뉴 없이 <strong>복음 선택 → 장 선택 → 재생</strong>에 맞춘 단순한 화면입니다.
       </p>
       <p>
-        Android 8.0(API 26) 이상에서 이용할 수 있습니다.
+        오디오는 앱에 포함되어 있어 <strong>인터넷 없이</strong> 재생할 수 있습니다.
+        Android 8.0(API 26) 이상을 권장합니다.
+      </p>
+
+      <div class="app-card" aria-label="앱 정보">
+        <dl>
+          <div>
+            <dt>앱 이름</dt>
+            <dd>복음서듣기</dd>
+          </div>
+          <div>
+            <dt>패키지 ID</dt>
+            <dd><code>njs.listentogospel</code></dd>
+          </div>
+          <div>
+            <dt>버전</dt>
+            <dd>1.0 (versionCode 1)</dd>
+          </div>
+          <div>
+            <dt>콘텐츠</dt>
+            <dd>마태오복음 28장 · 마르코복음 16장 · 루카복음 24장 · 요한복음 21장</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="accessibility-callout" aria-labelledby="a11y-teaser">
+      <h2 id="a11y-teaser">TalkBack 접근성</h2>
+      <p>
+        Google <strong>TalkBack</strong> 사용자를 위해 복음·장·재생·수면 타이머에 음성 안내를 제공합니다.
+        장 번호는 <strong>십이장</strong>처럼 한글로 읽힙니다.
+      </p>
+      <p class="actions" style="margin-top: 1rem; margin-bottom: 0;">
+        <a class="btn btn-primary" href="accessibility.html">TalkBack 안내</a>
       </p>
     </section>
 
     <section id="how-it-works">
-      <h2>작동법</h2>
+      <h2>사용 방법</h2>
       <ol class="features" style="list-style: decimal; padding-left: 1.25rem;">
-        <li><strong>복음 선택</strong>: 상단 2×2 그리드에서 마태오·마르코·루카·요한 중 하나를 탭합니다.</li>
-        <li><strong>장 선택</strong>: 장 목록에서 장을 탭하면 재생·정지·이어듣기가 전환됩니다. 재생 중인 장은 목록에서 강조됩니다.</li>
-        <li><strong>재생·정지</strong>: 장 목록 아래 재생 바를 탭합니다. 재생 중이면 정지, 정지 상태이면 이어 듣기 또는 선택한 장 재생입니다.</li>
-        <li><strong>수면 타이머</strong>: 복음 그리드 아래 타이머 바를 탭해 30·60·90·120분 또는 「계속」을 고릅니다. 설정한 시간이 지나면 재생을 자동으로 멈춥니다.</li>
-        <li><strong>이어 듣기</strong>: 앱을 다시 열면 마지막 위치 「이어서 ○○장 재생」 제안이 나타날 수 있습니다.</li>
-        <li><strong>백그라운드 재생</strong>: 화면을 끄거나 다른 앱으로 이동해도 재생이 계속됩니다. 알림 표시줄에서 재생 상태를 확인할 수 있습니다.</li>
+        <li><strong>복음 선택</strong> — 상단 그리드에서 마태오·마르코·루카·요한 중 하나를 탭합니다.</li>
+        <li><strong>장 선택</strong> — 장 목록에서 장을 탭하면 재생·정지·이어 듣기가 전환됩니다.</li>
+        <li><strong>재생 바</strong> — 하단 재생 바로 재생·정지·이어 듣기를 제어합니다.</li>
+        <li><strong>연속 재생</strong> — 한 장이 끝나면 같은 복음의 다음 장이 자동으로 이어집니다.</li>
+        <li><strong>마지막 장</strong> — 복음의 마지막 장이 끝나면 <strong>1장부터 다시</strong> 재생됩니다.</li>
+        <li><strong>수면 타이머</strong> — 30·60·90·120분 후 자동 정지 또는 「계속」을 선택합니다.</li>
+        <li><strong>이어 듣기</strong> — 앱을 다시 열면 마지막 위치에서 이어 들을 수 있습니다.</li>
       </ol>
     </section>
 
     <section>
       <h2>주요 기능</h2>
       <ul class="features">
-        <li>4복음서 중 원하는 복음과 장 선택 후 재생</li>
-        <li>선택한 장부터 복음 끝까지 연속 재생</li>
-        <li>지금 재생 중인 장을 목록에서 쉽게 확인</li>
-        <li>정지 후 재생 시, 가능한 경우 이전에 듣던 위치에서 이어 듣기</li>
-        <li><strong>백그라운드·화면 꺼짐 재생</strong>: 잠금 화면·다른 앱 사용 중에도 듣기 계속</li>
-        <li><strong>수면 타이머</strong>: 30·60·90·120분 뒤 자동 정지 또는 「계속」 선택</li>
-        <li>오프라인 재생 (앱에 포함된 오디오 파일 사용)</li>
-        <li><strong>TalkBack 접근성</strong>: 스크린 리더 음성 안내·한글 장 번호 읽기 (<a href="accessibility.html">자세히</a>)</li>
-        <li>개인정보 수집 없음 (<a href="privacy.html">개인정보 처리방침</a>)</li>
+        <li>4복음 89장 전체 오프라인 오디오</li>
+        <li>장 완료 후 다음 장 자동 재생 · 마지막 장 후 1장 루프</li>
+        <li>재생 중인 장 목록 강조 표시</li>
+        <li>정지 후 같은 장 위치에서 이어 듣기</li>
+        <li>백그라운드·화면 꺼짐 상태 재생</li>
+        <li>수면 타이머 (30 / 60 / 90 / 120분)</li>
+        <li>TalkBack(스크린 리더) 음성 안내</li>
+        <li>개인정보 수집 없음 — <a href="privacy.html">개인정보 처리방침</a></li>
       </ul>
+
       <div class="actions">
-        <a class="btn btn-primary" href="support.html">지원 · 문의</a>
-        <a id="play-store-link" class="btn btn-secondary" href="https://play.google.com/store/search?q=%EB%B3%B5%EC%9D%8C%EC%84%9C%EB%93%A3%EA%B8%B0&c=apps" rel="noopener noreferrer">Google Play에서 보기</a>
+        <a class="btn btn-primary" href="support.html">지원 · FAQ</a>
+        <a id="play-store-link" class="btn btn-secondary" href="https://play.google.com/store/apps/details?id=njs.listentogospel" rel="noopener noreferrer">Google Play</a>
       </div>
       <p style="margin-top: 1.25rem; font-size: 0.9rem;">
-        Play Store에 등록되면 위 버튼 링크를 앱 전용 주소로 바꿔 주세요.<br />
-        <a href="privacy.html">개인정보 처리방침</a>
+        Play Store 출시 전에는 스토어 링크가 열리지 않을 수 있습니다. 출시 후 같은 주소로 연결됩니다.
       </p>
+    </section>
+
+    <section id="play-console-urls">
+      <h2>Play Console에 넣을 URL</h2>
+      <p>GitHub Pages 게시 후 아래 주소를 복사해 등록합니다 (사용자명·저장소명에 맞게 확인).</p>
+      <ul class="store-urls">
+        <li>마케팅 URL (기본 웹사이트)
+          <code>https://mrnoh99.github.io/ListenToGospel-Android/</code>
+        </li>
+        <li>지원 URL
+          <code>https://mrnoh99.github.io/ListenToGospel-Android/support.html</code>
+        </li>
+        <li>개인정보 처리방침 URL
+          <code>https://mrnoh99.github.io/ListenToGospel-Android/privacy.html</code>
+        </li>
+      </ul>
     </section>
   </main>
 
   <footer>
-    <nav>
+    <nav aria-label="사이트 메뉴">
       <a href="index.html">홈</a>
       <a href="accessibility.html">TalkBack</a>
       <a href="support.html">지원</a>
       <a href="privacy.html">개인정보</a>
     </nav>
-    <p>ListenToGospel · Android · GitHub Pages</p>
+    <p>복음서듣기 · Android · <a href="mailto:jsnoh2010@gmail.com">jsnoh2010@gmail.com</a></p>
   </footer>
 </body>
 </html>
