@@ -88,8 +88,13 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
                     )
                 }
                 if (audioState.chapterJustCompleted) {
+                    val completedChapter = audioState.currentChapter
                     audioPlayer.ackChapterCompleted()
-                    playNextChapter()
+                    if (completedChapter != null) {
+                        viewModelScope.launch {
+                            playNextChapterAfter(completedChapter)
+                        }
+                    }
                 }
             }
         }
@@ -355,15 +360,14 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
         _uiState.update { it.copy(sleepTimerRemainingSeconds = 0) }
     }
 
-    private fun playNextChapter() {
-        val current = _uiState.value.currentChapter ?: return
-        val next = current.number + 1
-        if (next <= current.gospel.chapterCount) {
-            haptic(AppHaptic.ChapterChange)
-            playChapter(BibleChapter(current.gospel, next))
+    private fun playNextChapterAfter(completedChapter: BibleChapter) {
+        val next = if (completedChapter.number < completedChapter.gospel.chapterCount) {
+            completedChapter.number + 1
         } else {
-            persistence.clear()
+            1
         }
+        haptic(AppHaptic.ChapterChange)
+        playChapter(BibleChapter(completedChapter.gospel, next))
     }
 
     private fun saveCurrentPosition() {

@@ -43,6 +43,37 @@ chmod +x copy_audio_assets.sh
 ### 4. 빌드 및 실행
 Gradle Sync 후 실행 버튼을 누르면 됩니다.
 
+### 장 넘김(자동 재생) 빠른 테스트
+전체 장 오디오는 길어서, **약 10초짜리 테스트 클립**으로 바꿔 연속 재생을 검증할 수 있습니다. 원본은 프로젝트 루트 `.audio-backup/`에 보관됩니다 (git 제외).
+
+**Windows (PowerShell, ffmpeg 필요):**
+
+먼저 프로젝트 루트로 이동합니다 (`app/`, `scripts/` 폴더가 보이는 위치).
+
+```cmd
+cd C:\Users\jsnoh\StudioProjects\ListenToGospel-Android
+winget install Gyan.FFmpeg
+audio_test_mode.cmd -Enable
+REM 앱 실행 → 한 장이 끝나면 다음 장으로 넘어가는지 확인
+audio_test_mode.cmd -Restore
+```
+
+PowerShell에서 `실행 정책` 오류가 나면 **`.cmd`를 사용**하세요 (정책 변경 불필요).
+
+PowerShell로 직접 실행할 때:
+```powershell
+powershell -ExecutionPolicy Bypass -File ".\scripts\audio_test_mode.ps1" -Enable
+```
+
+**macOS / Linux:**
+```bash
+./scripts/audio_test_mode.sh enable
+./scripts/audio_test_mode.sh restore
+```
+
+옵션: `-Seconds 8` (PowerShell) 또는 `./scripts/audio_test_mode.sh enable 8`  
+상태 확인: `-Status` / `./scripts/audio_test_mode.sh status`
+
 ## 프로젝트 구조
 
 ```

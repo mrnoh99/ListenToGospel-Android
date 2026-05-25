@@ -47,6 +47,7 @@ class AudioPlayer(private val context: Context) {
     private var pendingStartMs = 0
     private var playbackJob: Job? = null
     private var playbackGeneration = 0
+    private var completionSignaled = false
 
     @Suppress("DEPRECATION")
     private val legacyFocusListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
@@ -59,13 +60,12 @@ class AudioPlayer(private val context: Context) {
     fun play(chapter: BibleChapter, startMs: Int = 0) {
         val generation = ++playbackGeneration
         playbackJob?.cancel()
-        abandonAudioFocus()
         releasePlayer()
 
         pendingChapter = chapter
         pendingStartMs = startMs
 
-        when (requestAudioFocus()) {
+        when (ensureAudioFocus()) {
             AudioManager.AUDIOFOCUS_REQUEST_FAILED -> {
                 pendingChapter = null
                 _state.update {
@@ -96,9 +96,15 @@ class AudioPlayer(private val context: Context) {
             it.copy(
                 isPlaying = false,
                 currentChapter = null,
-                positionMs = posMs
+                positionMs = posMs,
+                chapterJustCompleted = false
             )
         }
+        endPlaybackSession()
+    }
+
+    /** Call when playback ends and no further chapter will auto-start (e.g. last chapter of a gospel). */
+    fun endPlaybackSession() {
         stopForegroundService()
         abandonAudioFocus()
     }
@@ -162,6 +168,7 @@ class AudioPlayer(private val context: Context) {
         generation: Int
     ) {
         if (generation != playbackGeneration) return
+        completionSignaled = false
 
         val audioFile = withContext(Dispatchers.IO) {
             resolveChapterAudioFile(chapter)
@@ -180,7 +187,7 @@ class AudioPlayer(private val context: Context) {
             )
             setDataSource(audioFile.absolutePath)
             setVolume(1f, 1f)
-            setOnCompletionListener { handleCompletion() }
+            setOnCompletionListener { scope.launch { handleCompletion() } }
             setOnErrorListener { _, what, extra ->
                 Log.e(TAG, "MediaPlayer error what=$what extra=$extra")
                 scope.launch {
@@ -268,21 +275,31 @@ class AudioPlayer(private val context: Context) {
 
     private fun failPlayback(message: String) {
         releasePlayer()
-        abandonAudioFocus()
+        endPlaybackSession()
         _state.update {
             it.copy(
                 isPlaying = false,
                 currentChapter = null,
+                chapterJustCompleted = false,
                 playbackError = message
             )
         }
     }
 
     private fun handleCompletion() {
+        if (completionSignaled) return
+        completionSignaled = true
+        val completedChapter = _state.value.currentChapter
         releasePlayer()
-        _state.update { it.copy(isPlaying = false, chapterJustCompleted = true) }
-        stopForegroundService()
-        abandonAudioFocus()
+        _state.update {
+            it.copy(
+                isPlaying = false,
+                chapterJustCompleted = true,
+                currentChapter = completedChapter,
+                positionMs = it.durationMs
+            )
+        }
+        // Keep audio focus and the foreground service so the next chapter can start immediately.
     }
 
     private fun startPositionPolling() {
@@ -290,8 +307,18 @@ class AudioPlayer(private val context: Context) {
         positionJob = scope.launch {
             while (_state.value.isPlaying) {
                 val player = mediaPlayer
-                if (player != null && player.isPlaying) {
-                    _state.update { it.copy(positionMs = player.currentPosition) }
+                if (player != null) {
+                    val positionMs = player.currentPosition
+                    val durationMs = player.duration
+                    _state.update {
+                        it.copy(positionMs = positionMs, durationMs = durationMs.coerceAtLeast(0))
+                    }
+                    if (!completionSignaled &&
+                        durationMs > 0 &&
+                        positionMs >= durationMs - 400
+                    ) {
+                        handleCompletion()
+                    }
                 }
                 delay(500)
             }
@@ -317,6 +344,13 @@ class AudioPlayer(private val context: Context) {
 
     private fun stopForegroundService() {
         context.stopService(Intent(context, PlaybackService::class.java))
+    }
+
+    private fun ensureAudioFocus(): Int {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (audioFocusRequest != null) return AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        }
+        return requestAudioFocus()
     }
 
     private fun requestAudioFocus(): Int {
