@@ -3,7 +3,6 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
@@ -20,7 +19,7 @@ android {
 
     defaultConfig {
         applicationId = "njs.listentogospel"
-        minSdk = 22
+        minSdk = 23
         targetSdk = 35
         versionCode = 3
         versionName = "1.0.2"
@@ -94,3 +93,6 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     androidTestImplementation("androidx.compose.ui:ui-test-manifest")
 }
+
+// Android Studio runs this on :app during sync; Kotlin registers it on the root only.
+tasks.register("prepareKotlinBuildScriptModel") {}
