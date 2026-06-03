@@ -22,9 +22,9 @@ class PlaybackPersistence(context: Context) {
 
     fun load(): SavedSession? {
         val ordinal = prefs.getInt("gospel_ordinal", -1)
-        if (ordinal < 0 || ordinal >= Gospel.values().size) return null
+        if (ordinal < 0 || ordinal >= Gospel.entries.size) return null
         return SavedSession(
-            gospel = Gospel.values()[ordinal],
+            gospel = Gospel.entries[ordinal],
             chapterNumber = prefs.getInt("chapter_number", 1),
             elapsedSeconds = when {
                 prefs.contains("elapsed_ms") ->

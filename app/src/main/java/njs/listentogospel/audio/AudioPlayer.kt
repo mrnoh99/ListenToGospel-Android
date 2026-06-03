@@ -247,6 +247,13 @@ class AudioPlayer(private val context: Context) {
         chapterCacheFile(chapter).takeIf { it.exists() }?.delete()
     }
 
+    private fun cleanupAudioCache(keepChapter: BibleChapter) {
+        val keepName = chapterCacheFile(keepChapter).name
+        context.cacheDir.listFiles { f ->
+            f.name.startsWith("AudioFiles_") && f.name.endsWith(".m4a") && f.name != keepName
+        }?.forEach { it.delete() }
+    }
+
     private fun assetByteLength(assetPath: String): Long =
         context.assets.openFd(assetPath).use { it.length }
 
@@ -270,6 +277,7 @@ class AudioPlayer(private val context: Context) {
                 "Incomplete audio cache for ${chapter.assetPath} (expected $expectedLength bytes)"
             )
         }
+        cleanupAudioCache(keepChapter = chapter)
         return cacheFile
     }
 
@@ -396,6 +404,7 @@ class AudioPlayer(private val context: Context) {
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT,
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
                 mediaPlayer?.pause()
+                _state.update { it.copy(isPlaying = false) }
             }
         }
     }
