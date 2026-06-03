@@ -24,3 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "ListenToGospel"
 include(":app")
+include(":audioPack")

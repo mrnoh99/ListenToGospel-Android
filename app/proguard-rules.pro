@@ -21,3 +21,6 @@
 -keep class njs.listentogospel.ListenToGospelApp { *; }
 -keep class njs.listentogospel.MainActivity { *; }
 -keep class njs.listentogospel.service.PlaybackService { *; }
+
+# Play Asset Delivery
+-keep class com.google.android.play.core.assetpacks.** { *; }

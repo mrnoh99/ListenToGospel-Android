@@ -61,9 +61,7 @@ android {
     packaging {
         resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
     }
-    androidResources {
-        noCompress += listOf("m4a", "mp3")
-    }
+    assetPacks += setOf(":audioPack")
 }
 
 kotlin {
@@ -84,6 +82,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
+    implementation("com.google.android.play:asset-delivery:2.3.0")
+    implementation("com.google.android.play:asset-delivery-ktx:2.3.0")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

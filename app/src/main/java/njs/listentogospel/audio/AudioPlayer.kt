@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.PowerManager
 import android.util.Log
 import androidx.core.content.ContextCompat
+import com.google.android.play.core.assetpacks.AssetPackManagerFactory
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -254,12 +255,18 @@ class AudioPlayer(private val context: Context) {
         }?.forEach { it.delete() }
     }
 
-    private fun assetByteLength(assetPath: String): Long =
-        context.assets.openFd(assetPath).use { it.length }
-
     private fun resolveChapterAudioFile(chapter: BibleChapter): File {
+        // Prefer the asset pack's on-disk file (avoids cache copy, works in dev + production).
+        val packLocation = AssetPackManagerFactory.getInstance(context)
+            .getPackLocation(AUDIO_PACK_NAME)
+        if (packLocation != null) {
+            val direct = java.io.File(packLocation.assetsPath(), chapter.assetPath)
+            if (direct.exists()) return direct
+        }
+
+        // Fallback: copy from AssetManager into cache (e.g. sideloaded APK without PAD).
         val cacheFile = chapterCacheFile(chapter)
-        val expectedLength = assetByteLength(chapter.assetPath)
+        val expectedLength = context.assets.openFd(chapter.assetPath).use { it.length }
 
         if (cacheFile.exists() && cacheFile.length() == expectedLength) {
             return cacheFile
@@ -422,5 +429,6 @@ class AudioPlayer(private val context: Context) {
 
     companion object {
         private const val TAG = "AudioPlayer"
+        private const val AUDIO_PACK_NAME = "audioPack"
     }
 }
