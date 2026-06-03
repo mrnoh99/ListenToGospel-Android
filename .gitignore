@@ -11,9 +11,6 @@ app/build/
 .cxx
 local.properties
 
-# Audio assets (large binary files - copy manually from ListenToGospel iOS project)
-app/src/main/assets/AudioFiles/
-
 # Full-audio backup created by scripts/audio_test_mode.* (short-clip chapter testing)
 .audio-backup/
 .audio-test-mode
