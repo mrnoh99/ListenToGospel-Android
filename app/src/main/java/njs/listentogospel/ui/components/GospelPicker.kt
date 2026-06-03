@@ -30,7 +30,7 @@ fun GospelPicker(
     onSelect: (Gospel) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val gospels = Gospel.values()
+    val gospels = Gospel.entries
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(AppControlLayout.gospelGridSpacing)

@@ -37,7 +37,7 @@ data class AudioState(
 
 class AudioPlayer(private val context: Context) {
 
-    private var mediaPlayer: MediaPlayer? = null
+    @Volatile private var mediaPlayer: MediaPlayer? = null
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var positionJob: Job? = null
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager

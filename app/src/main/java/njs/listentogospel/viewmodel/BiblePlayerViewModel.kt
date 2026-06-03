@@ -84,7 +84,11 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
                         isPlaying = audioState.isPlaying,
                         positionMs = audioState.positionMs,
                         durationMs = audioState.durationMs,
-                        playbackMessage = audioState.playbackError ?: state.playbackMessage
+                        playbackMessage = when {
+                            audioState.playbackError != null -> audioState.playbackError
+                            audioState.isPlaying -> null
+                            else -> state.playbackMessage
+                        }
                     )
                 }
                 if (audioState.chapterJustCompleted) {
