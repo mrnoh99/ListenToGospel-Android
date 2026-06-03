@@ -225,19 +225,6 @@ footer nav a {
   margin-bottom: 0;
 }
 
-.siri-callout {
-  background: rgba(110, 181, 255, 0.08);
-  border: 1px solid rgba(110, 181, 255, 0.35);
-  border-radius: 12px;
-  padding: 1.25rem 1.35rem;
-  margin-bottom: 2rem;
-}
-
-.siri-callout h2 {
-  margin-top: 0;
-  color: var(--link);
-}
-
 .phrase-table-wrap {
   overflow-x: auto;
   margin: 1rem 0 0;
