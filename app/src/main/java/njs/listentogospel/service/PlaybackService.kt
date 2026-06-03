@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
@@ -25,8 +26,16 @@ class PlaybackService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val title = intent?.getStringExtra(EXTRA_CHAPTER_TITLE) ?: "재생 중"
         try {
-            @Suppress("DEPRECATION")
-            startForeground(NOTIFICATION_ID, buildNotification(title))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(
+                    NOTIFICATION_ID,
+                    buildNotification(title),
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                startForeground(NOTIFICATION_ID, buildNotification(title))
+            }
         } catch (e: Exception) {
             stopSelf()
             return START_NOT_STICKY
@@ -62,7 +71,7 @@ class PlaybackService : Service() {
             "오디오 재생",
             NotificationManager.IMPORTANCE_LOW
         ).apply { description = "복음서 오디오 재생 알림" }
-        getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        getSystemService(NotificationManager::class.java)?.createNotificationChannel(channel)
     }
 
     private fun buildNotification(chapterTitle: String): Notification {
