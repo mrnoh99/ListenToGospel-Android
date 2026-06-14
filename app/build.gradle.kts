@@ -62,6 +62,14 @@ android {
         resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
     }
     assetPacks += setOf(":audioPack")
+
+    // PAD asset packs are not included in a plain debug APK from Android Studio Run.
+    // Merge audioPack assets into debug only so local installs can use context.assets fallback.
+    sourceSets {
+        getByName("debug") {
+            assets.directories.add("${rootProject.projectDir}/audioPack/src/main/assets")
+        }
+    }
 }
 
 kotlin {
