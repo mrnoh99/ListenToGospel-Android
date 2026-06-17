@@ -9,6 +9,34 @@ object Lectionary {
 
     fun getTodayGospelChapter(date: LocalDate = LocalDate.now()): BibleChapter? {
         val pos = LiturgicalCalendar.liturgicalPosition(date)
+
+        // Movable feasts in ordinary time that override week-based readings
+        if (pos.season == LiturgicalSeason.ORDINARY_AFTER_PENTECOST) {
+            val pentecost = LiturgicalCalendar.easterDate(date.year).plusDays(49)
+            val override = when (date) {
+                pentecost.plusDays(7) -> when (pos.sundayCycle) {    // Trinity Sunday
+                    SundayCycle.A -> gc(J, 3)
+                    SundayCycle.B -> gc(M, 28)
+                    SundayCycle.C -> gc(J, 16)
+                }
+                pentecost.plusDays(14) -> when (pos.sundayCycle) {   // Corpus Christi (Sunday in Korea)
+                    SundayCycle.A -> gc(J, 6)
+                    SundayCycle.B -> gc(Mk, 14)
+                    SundayCycle.C -> gc(L, 9)
+                }
+                pentecost.plusDays(19) -> when (pos.sundayCycle) {   // Sacred Heart
+                    SundayCycle.A -> gc(M, 11)
+                    SundayCycle.B -> gc(J, 19)
+                    SundayCycle.C -> gc(L, 15)
+                }
+                else -> null
+            }
+            if (override != null) {
+                val (g, c) = override
+                return if (c in 1..g.chapterCount) BibleChapter(g, c) else null
+            }
+        }
+
         val (gospel, chapter) = when (pos.season) {
             LiturgicalSeason.ADVENT -> adventGospel(pos)
             LiturgicalSeason.CHRISTMAS -> christmasGospel(pos)

@@ -88,6 +88,7 @@ fun MainScreen(viewModel: BiblePlayerViewModel = viewModel()) {
 
         TodayGospelButton(
             todayChapter = uiState.todayGospelChapter,
+            liturgicalName = uiState.todayLiturgicalName,
             onClick = { viewModel.playTodayGospel() },
             modifier = Modifier
                 .fillMaxWidth()

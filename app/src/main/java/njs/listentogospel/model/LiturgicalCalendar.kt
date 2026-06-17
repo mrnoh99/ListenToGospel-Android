@@ -153,4 +153,96 @@ object LiturgicalCalendar {
 
         return LiturgicalPosition(season, week, dow, sc, wc)
     }
+
+    fun liturgicalDayName(date: LocalDate = LocalDate.now()): String {
+        val md = date.monthValue * 100 + date.dayOfMonth
+        val fixed = when (md) {
+            101  -> "천주의 성모 마리아 대축일"
+            202  -> "주님 봉헌 축일"
+            319  -> "복되신 동정 마리아의 배필 성 요셉 대축일"
+            325  -> "주님 탄생 예고 대축일"
+            624  -> "성 요한 세례자 탄생 대축일"
+            629  -> "성 베드로와 성 바오로 사도 대축일"
+            806  -> "주님의 거룩한 변모 축일"
+            815  -> "성모 승천 대축일"
+            1101 -> "모든 성인 대축일"
+            1102 -> "죽은 모든 이를 기억하는 위령의 날"
+            1208 -> "한국 교회의 수호자 원죄 없이 잉태되신 복되신 동정 마리아 대축일"
+            1225 -> "주님 성탄 대축일"
+            1226 -> "성 스테파노 첫 순교자 축일"
+            1228 -> "죄 없는 아기 순교자들 축일"
+            else -> null
+        }
+        if (fixed != null) return fixed
+
+        if (date.monthValue == 12 && date.dayOfMonth in 17..24) {
+            return "12월 ${date.dayOfMonth}일 대림"
+        }
+
+        // Korea: Epiphany on the Sunday between Jan 2–8
+        if (date.monthValue == 1 && date.dayOfMonth in 2..8 && date.dayOfWeek == DayOfWeek.SUNDAY) {
+            return "주님 공현 대축일"
+        }
+
+        val year = date.year
+        val easter = easterDate(year)
+        val ashWed = easter.minusDays(46)
+        val pentecost = easter.plusDays(49)
+        val baptism = baptismOfLord(year)
+        val dec25 = LocalDate.of(year, Month.DECEMBER, 25)
+        val holyFamily = if (dec25.dayOfWeek == DayOfWeek.SUNDAY)
+            LocalDate.of(year, Month.DECEMBER, 30)
+        else
+            dec25.with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
+        val christTheKing = firstSundayOfAdvent(year).minusWeeks(1)
+
+        val movable = when (date) {
+            baptism                -> "주님 세례 축일"
+            ashWed                 -> "재의 수요일"
+            ashWed.plusDays(1)     -> "재의 예식 다음 목요일"
+            ashWed.plusDays(2)     -> "재의 예식 다음 금요일"
+            ashWed.plusDays(3)     -> "재의 예식 다음 토요일"
+            easter.minusDays(7)    -> "주님 수난 성지 주일"
+            easter.minusDays(3)    -> "주님 만찬 성목요일"
+            easter.minusDays(2)    -> "주님 수난 성금요일"
+            easter.minusDays(1)    -> "성토요일"
+            easter                 -> "주님 부활 대축일"
+            easter.plusDays(1)     -> "부활 팔일 축제 월요일"
+            easter.plusDays(2)     -> "부활 팔일 축제 화요일"
+            easter.plusDays(3)     -> "부활 팔일 축제 수요일"
+            easter.plusDays(4)     -> "부활 팔일 축제 목요일"
+            easter.plusDays(5)     -> "부활 팔일 축제 금요일"
+            easter.plusDays(6)     -> "부활 팔일 축제 토요일"
+            easter.plusDays(42)    -> "주님 승천 대축일"   // Korea: 7th Sunday of Easter
+            pentecost              -> "성령 강림 대축일"
+            pentecost.plusDays(1)  -> "교회의 어머니 복되신 동정 마리아 기념일"
+            pentecost.plusDays(7)  -> "지극히 거룩하신 삼위일체 대축일"
+            pentecost.plusDays(14) -> "지극히 거룩하신 그리스도의 성체 성혈 대축일"
+            pentecost.plusDays(19) -> "지극히 거룩하신 예수 성심 대축일"
+            holyFamily             -> "예수, 마리아, 요셉의 성가정 축일"
+            christTheKing          -> "온 누리의 임금이신 우리 주 예수 그리스도 왕 대축일"
+            else                   -> null
+        }
+        if (movable != null) return movable
+
+        val pos = liturgicalPosition(date)
+        val s = when (pos.season) {
+            LiturgicalSeason.ADVENT -> "대림"
+            LiturgicalSeason.CHRISTMAS -> "성탄"
+            LiturgicalSeason.ORDINARY_BEFORE_LENT,
+            LiturgicalSeason.ORDINARY_AFTER_PENTECOST -> "연중"
+            LiturgicalSeason.LENT -> "사순"
+            LiturgicalSeason.EASTER -> "부활"
+        }
+        return when (pos.dayOfWeek) {
+            DayOfWeek.SUNDAY    -> "$s 제${pos.week}주일"
+            DayOfWeek.MONDAY    -> "$s 제${pos.week}주간 월요일"
+            DayOfWeek.TUESDAY   -> "$s 제${pos.week}주간 화요일"
+            DayOfWeek.WEDNESDAY -> "$s 제${pos.week}주간 수요일"
+            DayOfWeek.THURSDAY  -> "$s 제${pos.week}주간 목요일"
+            DayOfWeek.FRIDAY    -> "$s 제${pos.week}주간 금요일"
+            DayOfWeek.SATURDAY  -> "$s 제${pos.week}주간 토요일"
+            else                -> s
+        }
+    }
 }
