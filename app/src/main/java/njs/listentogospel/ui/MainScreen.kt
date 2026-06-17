@@ -42,6 +42,7 @@ import njs.listentogospel.ui.components.GospelHeaderGlassBar
 import njs.listentogospel.ui.components.GospelPicker
 import njs.listentogospel.ui.components.PlaybackGlassMenu
 import njs.listentogospel.ui.components.SleepTimerSheet
+import njs.listentogospel.ui.components.TodayGospelButton
 import njs.listentogospel.model.BibleChapter
 import njs.listentogospel.ui.theme.AppControlLayout
 import njs.listentogospel.util.AppHaptic
@@ -83,6 +84,15 @@ fun MainScreen(viewModel: BiblePlayerViewModel = viewModel()) {
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold
+        )
+
+        TodayGospelButton(
+            todayChapter = uiState.todayGospelChapter,
+            onClick = { viewModel.playTodayGospel() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = AppControlLayout.headerSectionSpacing)
+                .padding(horizontal = AppControlLayout.floatingBarHorizontalInset)
         )
 
         GospelPicker(
