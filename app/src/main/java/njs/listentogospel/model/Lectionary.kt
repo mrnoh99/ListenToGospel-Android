@@ -268,13 +268,17 @@ object Lectionary {
             // Week 9
             arrayOf(gc(Mk,10), gc(Mk,10), gc(Mk,10), gc(Mk,12), gc(Mk,12), gc(Mk,12)),
             // Week 10 — Matthew (Sermon on the Mount)
-            arrayOf(gc(M,5), gc(M,5), gc(M,5), gc(M,5), gc(M,5), gc(M,6)),
+            // Mon-Sat: Mt 5:1-12 … 5:33-37 (all in ch.5)
+            arrayOf(gc(M,5), gc(M,5), gc(M,5), gc(M,5), gc(M,5), gc(M,5)),
             // Week 11
-            arrayOf(gc(M,5), gc(M,6), gc(M,6), gc(M,6), gc(M,6), gc(M,7)),
+            // Mon Mt5:38, Tue Mt5:43 (still ch.5), Wed-Sat Mt6
+            arrayOf(gc(M,5), gc(M,5), gc(M,6), gc(M,6), gc(M,6), gc(M,6)),
             // Week 12
+            // Mon-Wed Mt7, Thu Mt8:1, Fri Mt9:9, Sat Mt9:14
             arrayOf(gc(M,7), gc(M,7), gc(M,7), gc(M,8), gc(M,9), gc(M,9)),
             // Week 13
-            arrayOf(gc(M,9), gc(M,9), gc(M,9), gc(M,10), gc(M,10), gc(M,10)),
+            // Mon-Tue Mt9, Wed Mt10:1-7, Thu-Sat Mt10
+            arrayOf(gc(M,9), gc(M,9), gc(M,10), gc(M,10), gc(M,10), gc(M,10)),
             // Week 14
             arrayOf(gc(M,10), gc(M,10), gc(M,10), gc(M,10), gc(M,10), gc(M,11)),
             // Week 15

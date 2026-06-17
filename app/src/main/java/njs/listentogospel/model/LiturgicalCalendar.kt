@@ -142,8 +142,11 @@ object LiturgicalCalendar {
                 (days / 7 + 1).coerceIn(1, 7)
             }
             LiturgicalSeason.ORDINARY_AFTER_PENTECOST -> {
-                // Week number counted backward from Christ the King (week 34)
-                val days = (christTheKing.toEpochDay() - date.toEpochDay()).toInt()
+                // Week number counted backward from Christ the King (week 34).
+                // Anchor to the Sunday of the current week so Mon-Sat get the
+                // same week number as their Sunday (not the following Sunday's).
+                val sundayOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
+                val days = (christTheKing.toEpochDay() - sundayOfWeek.toEpochDay()).toInt()
                 (34 - days / 7).coerceIn(10, 34)
             }
         }
