@@ -15,6 +15,7 @@ import njs.listentogospel.data.PlaybackPersistence
 import njs.listentogospel.data.SavedSession
 import njs.listentogospel.model.BibleChapter
 import njs.listentogospel.model.Gospel
+import njs.listentogospel.model.Lectionary
 import njs.listentogospel.util.AppHaptic
 import njs.listentogospel.util.HapticFeedback
 
@@ -51,7 +52,8 @@ data class UiState(
     val playbackMessage: String? = null,
     val scrollRequestId: Long = 0,
     val scrollTargetChapter: BibleChapter? = null,
-    val scrollAlignment: ChapterScrollAlignment = ChapterScrollAlignment.TOP
+    val scrollAlignment: ChapterScrollAlignment = ChapterScrollAlignment.TOP,
+    val todayGospelChapter: BibleChapter? = null
 ) {
     val playbackTargetChapter: BibleChapter
         get() = currentChapter
@@ -74,6 +76,7 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     init {
+        _uiState.update { it.copy(todayGospelChapter = Lectionary.getTodayGospelChapter()) }
         restoreSessionOnLaunch()
 
         viewModelScope.launch {
@@ -279,6 +282,11 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
     fun playFromSelection() {
         val target = _uiState.value.playbackTargetChapter
         playChapter(target)
+    }
+
+    fun playTodayGospel() {
+        val chapter = _uiState.value.todayGospelChapter ?: return
+        playChapter(chapter)
     }
 
     fun stop() {
