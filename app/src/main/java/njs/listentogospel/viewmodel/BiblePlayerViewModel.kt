@@ -19,6 +19,7 @@ import njs.listentogospel.model.LiturgicalCalendar
 import njs.listentogospel.model.Lectionary
 import njs.listentogospel.util.AppHaptic
 import njs.listentogospel.util.HapticFeedback
+import java.time.LocalDate
 
 enum class ChapterScrollAlignment {
     TOP,
@@ -54,6 +55,7 @@ data class UiState(
     val scrollRequestId: Long = 0,
     val scrollTargetChapter: BibleChapter? = null,
     val scrollAlignment: ChapterScrollAlignment = ChapterScrollAlignment.TOP,
+    val viewedDate: LocalDate = LocalDate.now(),
     val todayGospelChapter: BibleChapter? = null,
     val todayLiturgicalName: String = ""
 ) {
@@ -78,12 +80,7 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     init {
-        _uiState.update {
-            it.copy(
-                todayGospelChapter = Lectionary.getTodayGospelChapter(),
-                todayLiturgicalName = LiturgicalCalendar.liturgicalDayName()
-            )
-        }
+        updateViewedDate(LocalDate.now())
         restoreSessionOnLaunch()
 
         viewModelScope.launch {
@@ -294,6 +291,24 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
     fun playTodayGospel() {
         val chapter = _uiState.value.todayGospelChapter ?: return
         playChapter(chapter)
+    }
+
+    fun navigatePrevDay() {
+        updateViewedDate(_uiState.value.viewedDate.minusDays(1))
+    }
+
+    fun navigateNextDay() {
+        updateViewedDate(_uiState.value.viewedDate.plusDays(1))
+    }
+
+    private fun updateViewedDate(date: LocalDate) {
+        _uiState.update {
+            it.copy(
+                viewedDate = date,
+                todayGospelChapter = Lectionary.getTodayGospelChapter(date),
+                todayLiturgicalName = LiturgicalCalendar.liturgicalDayName(date)
+            )
+        }
     }
 
     fun stop() {

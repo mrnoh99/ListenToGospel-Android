@@ -89,7 +89,10 @@ fun MainScreen(viewModel: BiblePlayerViewModel = viewModel()) {
         TodayGospelButton(
             todayChapter = uiState.todayGospelChapter,
             liturgicalName = uiState.todayLiturgicalName,
+            date = uiState.viewedDate,
             onClick = { viewModel.playTodayGospel() },
+            onPrev = { viewModel.navigatePrevDay() },
+            onNext = { viewModel.navigateNextDay() },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = AppControlLayout.headerSectionSpacing)
