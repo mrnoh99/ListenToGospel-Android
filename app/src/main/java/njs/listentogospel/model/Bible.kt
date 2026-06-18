@@ -23,8 +23,12 @@ data class BibleChapter(
 ) {
     val title: String get() = "${gospel.koreanName} ${number}장"
     val shortTitle: String get() = "${gospel.shortName} ${number}장"
+    val subtitle: String get() = ChapterTitles.get(gospel, number)
 
     // e.g. AudioFiles/01.마태오복음/마태오복음 01장.m4a
     val assetPath: String
         get() = "AudioFiles/${gospel.audioFolderName}/${gospel.audioFilePrefix} ${number.toString().padStart(2, '0')}장.m4a"
+
+    /** Estimated start time in ms for the given verse (1-based). Accuracy ≈ ±10s. */
+    fun verseStartMs(verse: Int): Int = VerseTimestamps.getStartMs(gospel, number, verse)
 }

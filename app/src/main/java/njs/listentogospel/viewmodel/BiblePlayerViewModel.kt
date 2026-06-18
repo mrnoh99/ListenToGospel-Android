@@ -15,9 +15,11 @@ import njs.listentogospel.data.PlaybackPersistence
 import njs.listentogospel.data.SavedSession
 import njs.listentogospel.model.BibleChapter
 import njs.listentogospel.model.Gospel
+import njs.listentogospel.model.LiturgicalCalendar
 import njs.listentogospel.model.Lectionary
 import njs.listentogospel.util.AppHaptic
 import njs.listentogospel.util.HapticFeedback
+import java.time.LocalDate
 
 enum class ChapterScrollAlignment {
     TOP,
@@ -53,7 +55,10 @@ data class UiState(
     val scrollRequestId: Long = 0,
     val scrollTargetChapter: BibleChapter? = null,
     val scrollAlignment: ChapterScrollAlignment = ChapterScrollAlignment.TOP,
-    val todayGospelChapter: BibleChapter? = null
+    val viewedDate: LocalDate = LocalDate.now(),
+    val todayGospelChapter: BibleChapter? = null,
+    val todayGospelStartVerse: Int = 1,
+    val todayLiturgicalName: String = ""
 ) {
     val playbackTargetChapter: BibleChapter
         get() = currentChapter
@@ -76,7 +81,7 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     init {
-        _uiState.update { it.copy(todayGospelChapter = Lectionary.getTodayGospelChapter()) }
+        updateViewedDate(LocalDate.now())
         restoreSessionOnLaunch()
 
         viewModelScope.launch {
@@ -285,8 +290,30 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun playTodayGospel() {
-        val chapter = _uiState.value.todayGospelChapter ?: return
-        playChapter(chapter)
+        val state = _uiState.value
+        val chapter = state.todayGospelChapter ?: return
+        val startMs = chapter.verseStartMs(state.todayGospelStartVerse)
+        playChapter(chapter, startMs)
+    }
+
+    fun navigatePrevDay() {
+        updateViewedDate(_uiState.value.viewedDate.minusDays(1))
+    }
+
+    fun navigateNextDay() {
+        updateViewedDate(_uiState.value.viewedDate.plusDays(1))
+    }
+
+    private fun updateViewedDate(date: LocalDate) {
+        val reading = Lectionary.getTodayGospelReading(date)
+        _uiState.update {
+            it.copy(
+                viewedDate = date,
+                todayGospelChapter = reading?.first,
+                todayGospelStartVerse = reading?.second ?: 1,
+                todayLiturgicalName = LiturgicalCalendar.liturgicalDayName(date)
+            )
+        }
     }
 
     fun stop() {
