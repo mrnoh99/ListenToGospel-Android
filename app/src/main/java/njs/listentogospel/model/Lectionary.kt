@@ -277,78 +277,74 @@ object Lectionary {
     // (Same gospel readings for both Year I and II; only the first reading differs)
     private fun ordinaryWeekdayGospel(week: Int, dow: DayOfWeek): Pair<Gospel, Int>? {
         val table: Array<Array<Pair<Gospel, Int>>> = arrayOf(
-            // Week 1
+            // Week 1  — Mark 1-2
             arrayOf(gc(Mk,1), gc(Mk,1), gc(Mk,1), gc(Mk,1), gc(Mk,2), gc(Mk,2)),
-            // Week 2
+            // Week 2  — Mon-Tue Mk2, Wed-Sat Mk3
             arrayOf(gc(Mk,2), gc(Mk,2), gc(Mk,2), gc(Mk,3), gc(Mk,3), gc(Mk,3)),
-            // Week 3
+            // Week 3  — Mon-Tue Mk3, Wed-Sat Mk4
             arrayOf(gc(Mk,3), gc(Mk,3), gc(Mk,4), gc(Mk,4), gc(Mk,4), gc(Mk,4)),
-            // Week 4
+            // Week 4  — Mon Mk4, Tue-Sat Mk5
             arrayOf(gc(Mk,4), gc(Mk,5), gc(Mk,5), gc(Mk,5), gc(Mk,5), gc(Mk,5)),
-            // Week 5
+            // Week 5  — Mon-Fri Mk6, Sat Mk7
             arrayOf(gc(Mk,6), gc(Mk,6), gc(Mk,6), gc(Mk,6), gc(Mk,6), gc(Mk,7)),
-            // Week 6
+            // Week 6  — Mon-Thu Mk7, Fri-Sat Mk8
             arrayOf(gc(Mk,7), gc(Mk,7), gc(Mk,7), gc(Mk,7), gc(Mk,8), gc(Mk,8)),
-            // Week 7
+            // Week 7  — Mon-Tue Mk8, Wed-Sat Mk9
             arrayOf(gc(Mk,8), gc(Mk,8), gc(Mk,9), gc(Mk,9), gc(Mk,9), gc(Mk,9)),
-            // Week 8
+            // Week 8  — Mon-Tue Mk9, Wed-Sat Mk10
             arrayOf(gc(Mk,9), gc(Mk,9), gc(Mk,10), gc(Mk,10), gc(Mk,10), gc(Mk,10)),
-            // Week 9
+            // Week 9  — Mon-Wed Mk10, Thu-Sat Mk12
             arrayOf(gc(Mk,10), gc(Mk,10), gc(Mk,10), gc(Mk,12), gc(Mk,12), gc(Mk,12)),
-            // Week 10 — Matthew (Sermon on the Mount)
-            // Mon-Sat: Mt 5:1-12 … 5:33-37 (all in ch.5)
+            // Week 10 — Matthew: all Mt5 (Sermon on the Mount)
             arrayOf(gc(M,5), gc(M,5), gc(M,5), gc(M,5), gc(M,5), gc(M,5)),
-            // Week 11
-            // Mon Mt5:38, Tue Mt5:43 (still ch.5), Wed-Sat Mt6
+            // Week 11 — Mon-Tue Mt5, Wed-Sat Mt6
             arrayOf(gc(M,5), gc(M,5), gc(M,6), gc(M,6), gc(M,6), gc(M,6)),
-            // Week 12
-            // Mon-Wed Mt7, Thu Mt8:1, Fri Mt9:9, Sat Mt9:14
-            arrayOf(gc(M,7), gc(M,7), gc(M,7), gc(M,8), gc(M,9), gc(M,9)),
-            // Week 13
-            // Mon-Tue Mt9, Wed Mt10:1-7, Thu-Sat Mt10
+            // Week 12 — Mon-Thu Mt7, Fri-Sat Mt8
+            arrayOf(gc(M,7), gc(M,7), gc(M,7), gc(M,7), gc(M,8), gc(M,8)),
+            // Week 13 — Mon-Wed Mt8, Thu-Sat Mt9
+            arrayOf(gc(M,8), gc(M,8), gc(M,8), gc(M,9), gc(M,9), gc(M,9)),
+            // Week 14 — Mon-Tue Mt9, Wed-Sat Mt10
             arrayOf(gc(M,9), gc(M,9), gc(M,10), gc(M,10), gc(M,10), gc(M,10)),
-            // Week 14
-            arrayOf(gc(M,10), gc(M,10), gc(M,10), gc(M,10), gc(M,10), gc(M,11)),
-            // Week 15
+            // Week 15 — Mon Mt10, Tue-Thu Mt11, Fri-Sat Mt12
             arrayOf(gc(M,10), gc(M,11), gc(M,11), gc(M,11), gc(M,12), gc(M,12)),
-            // Week 16
-            arrayOf(gc(M,12), gc(M,12), gc(M,12), gc(M,12), gc(M,13), gc(M,13)),
-            // Week 17
+            // Week 16 — Mon-Tue Mt12, Wed-Sat Mt13
+            arrayOf(gc(M,12), gc(M,12), gc(M,13), gc(M,13), gc(M,13), gc(M,13)),
+            // Week 17 — Mon-Fri Mt13, Sat Mt14
             arrayOf(gc(M,13), gc(M,13), gc(M,13), gc(M,13), gc(M,13), gc(M,14)),
-            // Week 18
+            // Week 18 — Mon-Tue Mt14, Wed Mt15, Thu Mt16, Fri-Sat Mt17
             arrayOf(gc(M,14), gc(M,14), gc(M,15), gc(M,16), gc(M,17), gc(M,17)),
-            // Week 19
+            // Week 19 — Mon Mt17, Tue-Sat Mt18
             arrayOf(gc(M,17), gc(M,18), gc(M,18), gc(M,18), gc(M,18), gc(M,18)),
-            // Week 20
+            // Week 20 — Mon-Wed Mt19, Thu-Sat Mt20
             arrayOf(gc(M,19), gc(M,19), gc(M,19), gc(M,20), gc(M,20), gc(M,20)),
-            // Week 21
-            arrayOf(gc(M,21), gc(M,21), gc(M,21), gc(M,22), gc(M,22), gc(M,22)),
-            // Week 22 — Luke
-            arrayOf(gc(L,1),  gc(L,4),  gc(L,4),  gc(L,4),  gc(L,4),  gc(L,5)),
-            // Week 23
+            // Week 21 — Mon-Wed Mt23, Thu Mt24, Fri-Sat Mt25
+            arrayOf(gc(M,23), gc(M,23), gc(M,23), gc(M,24), gc(M,25), gc(M,25)),
+            // Week 22 — Luke: Mon-Wed Lk4, Thu-Fri Lk5, Sat Lk6
+            arrayOf(gc(L,4),  gc(L,4),  gc(L,4),  gc(L,5),  gc(L,5),  gc(L,6)),
+            // Week 23 — all Lk6
             arrayOf(gc(L,6),  gc(L,6),  gc(L,6),  gc(L,6),  gc(L,6),  gc(L,6)),
-            // Week 24
+            // Week 24 — Mon-Thu Lk7, Fri-Sat Lk8
             arrayOf(gc(L,7),  gc(L,7),  gc(L,7),  gc(L,7),  gc(L,8),  gc(L,8)),
-            // Week 25
-            arrayOf(gc(L,8),  gc(L,9),  gc(L,9),  gc(L,9),  gc(L,9),  gc(L,9)),
-            // Week 26
-            arrayOf(gc(L,9),  gc(L,9),  gc(L,10), gc(L,10), gc(L,10), gc(L,10)),
-            // Week 27
+            // Week 25 — Mon-Tue Lk8, Wed-Sat Lk9
+            arrayOf(gc(L,8),  gc(L,8),  gc(L,9),  gc(L,9),  gc(L,9),  gc(L,9)),
+            // Week 26 — Mon-Wed Lk9, Thu-Sat Lk10
+            arrayOf(gc(L,9),  gc(L,9),  gc(L,9),  gc(L,10), gc(L,10), gc(L,10)),
+            // Week 27 — Mon-Tue Lk10, Wed-Sat Lk11
             arrayOf(gc(L,10), gc(L,10), gc(L,11), gc(L,11), gc(L,11), gc(L,11)),
-            // Week 28
-            arrayOf(gc(L,11), gc(L,11), gc(L,11), gc(L,12), gc(L,12), gc(L,12)),
-            // Week 29
-            arrayOf(gc(L,12), gc(L,12), gc(L,12), gc(L,12), gc(L,13), gc(L,13)),
-            // Week 30
-            arrayOf(gc(L,13), gc(L,13), gc(L,13), gc(L,14), gc(L,14), gc(L,14)),
-            // Week 31
-            arrayOf(gc(L,14), gc(L,15), gc(L,15), gc(L,15), gc(L,16), gc(L,16)),
-            // Week 32
-            arrayOf(gc(L,17), gc(L,17), gc(L,17), gc(L,17), gc(L,18), gc(L,18)),
-            // Week 33
-            arrayOf(gc(L,18), gc(L,19), gc(L,19), gc(L,19), gc(L,19), gc(L,19)),
-            // Week 34
-            arrayOf(gc(L,19), gc(L,20), gc(L,20), gc(L,21), gc(L,21), gc(L,21))
+            // Week 28 — Mon-Thu Lk11, Fri-Sat Lk12
+            arrayOf(gc(L,11), gc(L,11), gc(L,11), gc(L,11), gc(L,12), gc(L,12)),
+            // Week 29 — Mon-Fri Lk12, Sat Lk13
+            arrayOf(gc(L,12), gc(L,12), gc(L,12), gc(L,12), gc(L,12), gc(L,13)),
+            // Week 30 — Mon-Thu Lk13, Fri-Sat Lk14
+            arrayOf(gc(L,13), gc(L,13), gc(L,13), gc(L,13), gc(L,14), gc(L,14)),
+            // Week 31 — Mon-Wed Lk14, Thu Lk15, Fri-Sat Lk16
+            arrayOf(gc(L,14), gc(L,14), gc(L,14), gc(L,15), gc(L,16), gc(L,16)),
+            // Week 32 — Mon-Fri Lk17, Sat Lk18
+            arrayOf(gc(L,17), gc(L,17), gc(L,17), gc(L,17), gc(L,17), gc(L,18)),
+            // Week 33 — Mon Lk18, Tue-Fri Lk19, Sat Lk20
+            arrayOf(gc(L,18), gc(L,19), gc(L,19), gc(L,19), gc(L,19), gc(L,20)),
+            // Week 34 — all Lk21
+            arrayOf(gc(L,21), gc(L,21), gc(L,21), gc(L,21), gc(L,21), gc(L,21))
         )
         val wIdx = (week - 1).coerceIn(0, 33)
         val dIdx = (dow.value - 1).coerceIn(0, 5) // Mon=0..Sat=5
