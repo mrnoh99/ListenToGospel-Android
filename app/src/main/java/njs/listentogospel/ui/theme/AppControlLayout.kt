@@ -4,6 +4,9 @@ import androidx.compose.ui.unit.dp
 
 object AppControlLayout {
     val barHeight = 42.dp
+    /** Taller bar for [TodayGospelButton] with date, liturgical name, and chapter/verse. */
+    val todayGospelBarHeight = 72.dp
+    val todayGospelPlayIconSize = 48.dp
     /** Play/stop bar in [PlaybackGlassMenu]; 1.5× [barHeight]. */
     val playbackBarHeight = 63.dp
     val playbackBarIconSize = 45.dp

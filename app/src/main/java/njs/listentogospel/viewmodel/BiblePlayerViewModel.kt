@@ -304,6 +304,10 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
         updateViewedDate(_uiState.value.viewedDate.plusDays(1))
     }
 
+    fun navigateToToday() {
+        updateViewedDate(LocalDate.now())
+    }
+
     private fun updateViewedDate(date: LocalDate) {
         val reading = Lectionary.getTodayGospelReading(date)
         _uiState.update {

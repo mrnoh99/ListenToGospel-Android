@@ -90,9 +90,13 @@ fun MainScreen(viewModel: BiblePlayerViewModel = viewModel()) {
             todayChapter = uiState.todayGospelChapter,
             liturgicalName = uiState.todayLiturgicalName,
             date = uiState.viewedDate,
-            onClick = { viewModel.playTodayGospel() },
+            startVerse = uiState.todayGospelStartVerse,
+            onPlay = hapticClick(haptic, AppHaptic.Play) {
+                viewModel.playTodayGospel()
+            },
             onPrev = { viewModel.navigatePrevDay() },
             onNext = { viewModel.navigateNextDay() },
+            onGoToday = { viewModel.navigateToToday() },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = AppControlLayout.headerSectionSpacing)

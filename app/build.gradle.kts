@@ -80,7 +80,7 @@ kotlin {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools.desugar_jdk_libs:2.1.4")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation("androidx.core:core-ktx:1.16.0")
     implementation("androidx.fragment:fragment-ktx:1.8.5")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.0")

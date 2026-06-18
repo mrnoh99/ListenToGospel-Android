@@ -31,9 +31,12 @@ import njs.listentogospel.ui.hideFromAccessibilityTree
 import njs.listentogospel.util.AccessibilitySupport
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.flow.filter
@@ -161,6 +164,28 @@ private fun ChapterRow(
     modifier: Modifier = Modifier
 ) {
     val progress = if (durationMs > 0) positionMs.toFloat() / durationMs else 0f
+    val subtitle = chapter.subtitle
+    val chapterTitle = buildAnnotatedString {
+        withStyle(
+            SpanStyle(
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal
+            )
+        ) {
+            append(chapter.title)
+        }
+        if (subtitle.isNotEmpty()) {
+            append(' ')
+            withStyle(
+                SpanStyle(
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.45f),
+                    fontWeight = FontWeight.Normal
+                )
+            ) {
+                append(subtitle)
+            }
+        }
+    }
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -178,14 +203,13 @@ private fun ChapterRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = chapter.title,
+                text = chapterTitle,
                 modifier = Modifier
                     .weight(1f)
                     .hideFromAccessibilityTree(),
-                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 17.sp,
-                fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal,
-                maxLines = 1
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
 
             if (isActive && durationMs > 0) {
@@ -236,21 +260,6 @@ private fun ChapterRow(
                     )
                 }
             }
-        }
-
-        val subtitle = chapter.subtitle
-        if (subtitle.isNotEmpty()) {
-            Text(
-                text = subtitle,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 2.dp)
-                    .hideFromAccessibilityTree(),
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.45f),
-                fontSize = 11.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
         }
 
         if (isActive) {
