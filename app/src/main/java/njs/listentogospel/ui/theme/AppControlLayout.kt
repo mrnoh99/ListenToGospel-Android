@@ -20,5 +20,5 @@ object AppControlLayout {
     val controlsOverlayBottomReserve = 85.dp
     val chapterListGlassPeek = 20.dp
     val footerBarHeight = 18.dp
-    val chapterRowMinHeight = 50.dp
+    val chapterRowMinHeight = 62.dp
 }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.flow.filter
@@ -162,14 +164,14 @@ private fun ChapterRow(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .height(AppControlLayout.chapterRowMinHeight)
+            .heightIn(min = AppControlLayout.chapterRowMinHeight)
             .background(if (isActive) PlayingRowBackground else MaterialTheme.colorScheme.background)
             .accessibleHapticClickable(
                 label = AccessibilitySupport.spokenChapterTitle(chapter),
                 kind = hapticKind,
                 onClick = onClick
             )
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 10.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -236,12 +238,27 @@ private fun ChapterRow(
             }
         }
 
+        val subtitle = chapter.subtitle
+        if (subtitle.isNotEmpty()) {
+            Text(
+                text = subtitle,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 2.dp)
+                    .hideFromAccessibilityTree(),
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.45f),
+                fontSize = 11.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
         if (isActive) {
             LinearProgressIndicator(
                 progress = { progress.coerceIn(0f, 1f) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 6.dp)
+                    .padding(top = 5.dp)
                     .height(3.dp)
                     .hideFromAccessibilityTree(),
                 color = MaterialTheme.colorScheme.primary,

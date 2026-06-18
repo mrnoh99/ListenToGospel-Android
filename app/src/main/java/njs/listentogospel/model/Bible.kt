@@ -23,6 +23,7 @@ data class BibleChapter(
 ) {
     val title: String get() = "${gospel.koreanName} ${number}장"
     val shortTitle: String get() = "${gospel.shortName} ${number}장"
+    val subtitle: String get() = ChapterTitles.get(gospel, number)
 
     // e.g. AudioFiles/01.마태오복음/마태오복음 01장.m4a
     val assetPath: String
