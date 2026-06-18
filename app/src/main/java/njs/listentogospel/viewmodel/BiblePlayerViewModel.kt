@@ -57,6 +57,7 @@ data class UiState(
     val scrollAlignment: ChapterScrollAlignment = ChapterScrollAlignment.TOP,
     val viewedDate: LocalDate = LocalDate.now(),
     val todayGospelChapter: BibleChapter? = null,
+    val todayGospelStartVerse: Int = 1,
     val todayLiturgicalName: String = ""
 ) {
     val playbackTargetChapter: BibleChapter
@@ -289,8 +290,10 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun playTodayGospel() {
-        val chapter = _uiState.value.todayGospelChapter ?: return
-        playChapter(chapter)
+        val state = _uiState.value
+        val chapter = state.todayGospelChapter ?: return
+        val startMs = chapter.verseStartMs(state.todayGospelStartVerse)
+        playChapter(chapter, startMs)
     }
 
     fun navigatePrevDay() {
@@ -302,10 +305,12 @@ class BiblePlayerViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     private fun updateViewedDate(date: LocalDate) {
+        val reading = Lectionary.getTodayGospelReading(date)
         _uiState.update {
             it.copy(
                 viewedDate = date,
-                todayGospelChapter = Lectionary.getTodayGospelChapter(date),
+                todayGospelChapter = reading?.first,
+                todayGospelStartVerse = reading?.second ?: 1,
                 todayLiturgicalName = LiturgicalCalendar.liturgicalDayName(date)
             )
         }
